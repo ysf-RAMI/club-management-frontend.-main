@@ -3,23 +3,21 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBullseye, faUsers } from '@fortawesome/free-solid-svg-icons';
 
 const teamMembers = [
-  { name: "Dr. Evelyn Reed", role: "Faculty Advisor", image: "https://via.placeholder.com/150" },
-  { name: "Alice Johnson", role: "Lead Developer", image: "https://via.placeholder.com/150" },
-  { name: "Chris Thompson", role: "UI/UX Designer", image: "https://via.placeholder.com/150" },
-  { name: "Michael Chen", role: "Community Manager", image: "https://via.placeholder.com/150" },
+  { name: "Youssef RAMI", role: "Front-End Developer", image: "https://t3.ftcdn.net/jpg/02/99/04/20/360_F_299042079_vGBD7wIlSeNl7vOevWHiL93G4koMM967.jpg" },
+  { name: "Moad SADIDI", role: "Back-end Developer", image: "https://t3.ftcdn.net/jpg/02/43/12/34/360_F_243123463_zTooub557xEWABDLk0jJklDyLSGl2jrr.jpg" },
 ];
 
 const About = () => {
   return (
     <div className="bg-white">
+      <div className="bg-gradient-to-r from-indigo-600 to-violet-600 text-white p-12 text-center">
+        <h1 className="text-4xl font-bold">About Us</h1>
+        <p className="text-lg mt-4">
+        We are a passionate team dedicated to improving student life by connecting students with clubs and activities that match their interests.
+        </p>
+      </div>
       <div className="py-24 sm:py-32">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="mx-auto max-w-2xl lg:mx-0">
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">About Us</h2>
-            <p className="mt-6 text-lg leading-8 text-gray-600">
-              We are a passionate team dedicated to improving student life by connecting students with clubs and activities that match their interests.
-            </p>
-          </div>
 
           {/* Our Mission Section */}
           <div className="bg-gray-50 rounded-lg shadow-inner p-8 my-12">
@@ -38,7 +36,7 @@ const About = () => {
                 <FontAwesomeIcon icon={faUsers} className="text-indigo-600 text-3xl mr-4" />
                 <h2 className="text-3xl font-bold text-gray-800">Meet the Team</h2>
             </div>
-            <ul role="list" className="grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
+            <ul role="list" className="grid grid-cols-1 sm:grid-cols-2 gap-8 lg:grid-cols-2">
               {teamMembers.map((person) => (
                 <li key={person.name} className="flex flex-col items-center text-center">
                   <img className="h-24 w-24 rounded-full object-cover" src={person.image} alt="" />

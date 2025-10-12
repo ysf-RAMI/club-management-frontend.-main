@@ -131,9 +131,11 @@ export default function Events() {
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Hero Section */}
-      <div className="bg-purple-700 text-white py-20 text-center">
-        <h1 className="text-5xl font-bold mb-4">Upcoming Events</h1>
-        <p className="text-xl">Discover exciting events happening across all clubs</p>
+      <div className="bg-gradient-to-r from-indigo-600 to-violet-600 text-white p-12 text-center">
+        <h1 className="text-4xl font-bold">Upcoming Events</h1>
+        <p className="text-lg mt-4">
+        Discover exciting events happening across all clubs
+        </p>
       </div>
 
       <div className="container mx-auto ">
