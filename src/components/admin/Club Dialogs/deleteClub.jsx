@@ -18,33 +18,37 @@ export default function DeleteClubDialog({ open, onClose, onConfirm, clubName })
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-2 overflow-y-auto h-full w-full flex items-center justify-center">
-      <div className="relative p-6 border w-96 shadow-lg rounded-md bg-white">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="relative p-6 border w-full max-w-md shadow-lg rounded-lg bg-white">
         <h2 className="text-xl font-bold text-gray-900 mb-4">Delete Club</h2>
-        <p className="mb-4">
+        <p className="mb-4 text-gray-600">
           Are you sure you want to delete the club <strong>{clubName}</strong>? This action cannot
           be undone.
         </p>
-        <p className="mb-2">Type the club name below to confirm deletion.</p>
+        <p className="mb-2 text-sm text-gray-700">Type the club name below to confirm deletion.</p>
         <input
           type="text"
           placeholder={clubName}
           value={confirmedClubName}
           onChange={(e) => setConfirmedClubName(e.target.value)}
-          className="mt-1 p-2 border border-gray-300 rounded-md w-full mb-4"
+          className="mt-1 p-2 border border-gray-300 rounded-lg w-full mb-4 focus:ring-blue-500 focus:border-blue-500"
         />
-        <div className="flex justify-end space-x-2">
+        <div className="flex justify-end space-x-4">
           <button
             type="button"
             onClick={handleClose}
-            className="bg-gray-300 text-gray-800 p-2 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+            className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 cursor-pointer"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={handleConfirm}
-            className={`p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${confirmedClubName === clubName ? 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500' : 'bg-gray-400 text-gray-700 cursor-not-allowed'}`}
+            className={`px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+              confirmedClubName === clubName
+                ? 'bg-red-500 text-white hover:bg-red-600 focus:ring-red-500 cursor-pointer'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
             disabled={confirmedClubName !== clubName}
           >
             Delete

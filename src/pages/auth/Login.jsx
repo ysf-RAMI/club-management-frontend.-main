@@ -5,10 +5,10 @@ const Login = () => {
   const url = window.location.href;
   useEffect(() => {
     url.includes('register') ? setActiveTab('register') : setActiveTab('login');
-  }, []);
+  }, [url]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center py-12 bg-gradient-to-br from-white to-indigo-50">
+    <div className="min-h-screen flex flex-col items-center justify-center py-12 bg-gradient-to-br from-white to-indigo-50">
       <div className="flex flex-col lg:flex-row items-center justify-center lg:space-x-10 p-8 max-w-7xl mx-auto">
         {/* Left Section: Join Our Community */}
         <div className="text-center lg:text-left mb-10 lg:mb-0 max-w-md">
@@ -87,20 +87,6 @@ const Login = () => {
               </p>
             </div>
           </div>
-          <div className="flex justify-center space-x-8 mt-8">
-            <div>
-              <p className="text-3xl font-bold text-indigo-600">50+</p>
-              <p className="text-gray-500">Active Clubs</p>
-            </div>
-            <div>
-              <p className="text-3xl font-bold text-indigo-600">200+</p>
-              <p className="text-gray-500">Events Monthly</p>
-            </div>
-            <div>
-              <p className="text-3xl font-bold text-indigo-600">1500+</p>
-              <p className="text-gray-500">Active Members</p>
-            </div>
-          </div>
         </div>
 
         {/* Right Section: Login/Register Form */}
@@ -155,12 +141,6 @@ const Login = () => {
               </p>
               <form>
                 <div className="mb-4 relative">
-                  <label
-                    htmlFor="email"
-                    className="block text-sm font-medium text-gray-700 sr-only"
-                  >
-                    Email
-                  </label>
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <svg
                       className="h-5 w-5 text-gray-400"
@@ -183,12 +163,6 @@ const Login = () => {
                   />
                 </div>
                 <div className="mb-4 relative">
-                  <label
-                    htmlFor="password"
-                    className="block text-sm font-medium text-gray-700 sr-only"
-                  >
-                    Password
-                  </label>
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <svg
                       className="h-5 w-5 text-gray-400"
@@ -261,12 +235,6 @@ const Login = () => {
               <form>
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div className="relative">
-                    <label
-                      htmlFor="firstName"
-                      className="block text-sm font-medium text-gray-700 sr-only"
-                    >
-                      First Name
-                    </label>
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <svg
                         className="h-5 w-5 text-gray-400"
@@ -292,12 +260,6 @@ const Login = () => {
                     />
                   </div>
                   <div className="relative">
-                    <label
-                      htmlFor="lastName"
-                      className="block text-sm font-medium text-gray-700 sr-only"
-                    >
-                      Last Name
-                    </label>
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <svg
                         className="h-5 w-5 text-gray-400"
@@ -324,12 +286,6 @@ const Login = () => {
                   </div>
                 </div>
                 <div className="mb-4 relative">
-                  <label
-                    htmlFor="email"
-                    className="block text-sm font-medium text-gray-700 sr-only"
-                  >
-                    Email Address
-                  </label>
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <svg
                       className="h-5 w-5 text-gray-400"
@@ -352,12 +308,6 @@ const Login = () => {
                   />
                 </div>
                 <div className="mb-4 relative">
-                  <label
-                    htmlFor="studentId"
-                    className="block text-sm font-medium text-gray-700 sr-only"
-                  >
-                    Student ID
-                  </label>
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <svg
                       className="h-5 w-5 text-gray-400"
@@ -383,12 +333,6 @@ const Login = () => {
                   />
                 </div>
                 <div className="mb-4 relative">
-                  <label
-                    htmlFor="password"
-                    className="block text-sm font-medium text-gray-700 sr-only"
-                  >
-                    Password
-                  </label>
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <svg
                       className="h-5 w-5 text-gray-400"
@@ -414,12 +358,6 @@ const Login = () => {
                   />
                 </div>
                 <div className="mb-4 relative">
-                  <label
-                    htmlFor="confirmPassword"
-                    className="block text-sm font-medium text-gray-700 sr-only"
-                  >
-                    Confirm Password
-                  </label>
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <svg
                       className="h-5 w-5 text-gray-400"
@@ -443,20 +381,6 @@ const Login = () => {
                     placeholder="Confirm password"
                     required
                   />
-                </div>
-                <div className="mb-4">
-                  <label htmlFor="role" className="block text-sm font-medium text-gray-700 sr-only">
-                    Role
-                  </label>
-                  <select
-                    id="role"
-                    name="role"
-                    className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
-                  >
-                    <option>Student</option>
-                    <option>Faculty</option>
-                    <option>Admin</option>
-                  </select>
                 </div>
                 <div className="mb-4 flex items-center">
                   <input
@@ -506,83 +430,6 @@ const Login = () => {
                 Microsoft
               </button>
             </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Why Choose ClubManager Section */}
-      <div className="w-full max-w-7xl mt-10 px-8">
-        <h2 className="text-3xl font-bold text-center text-gray-800 mb-10">
-          Why Choose ClubManager?
-        </h2>
-        <div className="flex flex-col lg:flex-row justify-around items-center space-y-8 lg:space-y-0 lg:space-x-8">
-          <div className="flex flex-col items-center max-w-xs">
-            <div className="bg-purple-100 p-4 rounded-full mb-4">
-              <svg
-                className="h-10 w-10 text-purple-600"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 10V3L4 14h7v7l9-11h-7z"
-                />
-              </svg>
-            </div>
-            <h3 className="font-semibold text-gray-800 mb-2">Easy Management</h3>
-            <p className="text-sm text-gray-500">
-              Streamlined tools for club administrators to manage members, events, and
-              communications effortlessly.
-            </p>
-          </div>
-          <div className="flex flex-col items-center max-w-xs">
-            <div className="bg-blue-100 p-4 rounded-full mb-4">
-              <svg
-                className="h-10 w-10 text-blue-600"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"
-                />
-              </svg>
-            </div>
-            <h3 className="font-semibold text-gray-800 mb-2">Mobile Friendly</h3>
-            <p className="text-sm text-gray-500">
-              Access everything on the go with our responsive design that works perfectly on all
-              devices.
-            </p>
-          </div>
-          <div className="flex flex-col items-center max-w-xs">
-            <div className="bg-green-100 p-4 rounded-full mb-4">
-              <svg
-                className="h-10 w-10 text-green-600"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.003 12.003 0 002.92 12c0 3.072 1.874 5.798 4.515 7.553A12.003 12.003 0 0012 21c3.072 0 5.798-1.874 7.553-4.515A12.003 12.003 0 0021.08 12c0-3.072-1.874-5.798-4.515-7.553z"
-                />
-              </svg>
-            </div>
-            <h3 className="font-semibold text-gray-800 mb-2">Secure & Private</h3>
-            <p className="text-sm text-gray-500">
-              Your data is protected with enterprise-grade security and privacy controls.
-            </p>
           </div>
         </div>
       </div>

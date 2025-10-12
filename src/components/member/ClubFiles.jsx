@@ -170,7 +170,7 @@ export default function ClubFiles() {
             <div className="relative max-w-4xl max-h-full">
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 text-white text-2xl hover:text-gray-300 z-10"
+                    className="absolute top-4 right-4 text-white text-xl hover:text-gray-300 z-10 cursor-pointer"
                 >
                     <FontAwesomeIcon icon={faTimes} />
                 </button>
@@ -179,9 +179,9 @@ export default function ClubFiles() {
                     alt={image.title}
                     className="max-w-full max-h-full object-contain rounded-lg"
                 />
-                <div className="absolute bottom-4 left-4 right-4 bg-black bg-opacity-50 text-white p-4 rounded-lg">
-                    <h3 className="text-lg font-bold">{image.title}</h3>
-                    <p className="text-sm text-gray-300">
+                <div className="absolute bottom-4 left-4 right-4 bg-black bg-opacity-50 text-white p-2 rounded-lg">
+                    <h3 className="text-base font-bold">{image.title}</h3>
+                    <p className="text-xs text-gray-300">
                         Uploaded by {image.uploadedBy} on {image.date}
                     </p>
                 </div>
@@ -190,33 +190,30 @@ export default function ClubFiles() {
     )
 
     return (
-        <main className="min-h-screen bg-gray-50">
+        <main className="min-h-screen bg-gray-50 p-4">
             {/* Header */}
-            <header className="mb-8">
-                <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-8 rounded-xl shadow-lg">
+            <header className="mb-6">
+                <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-6 rounded-xl shadow-lg">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h1 className="text-3xl font-bold mb-2">Club Files</h1>
-                            <p className="text-purple-100 text-lg">View and manage club files and images</p>
+                            <h1 className="text-2xl font-bold mb-1">Club Files</h1>
+                            <p className="text-purple-100 text-base">View and manage club files and images</p>
                         </div>
-                        <FontAwesomeIcon icon={faFolder} className="text-white text-6xl opacity-30" />
+                        <FontAwesomeIcon icon={faFolder} className="text-white text-5xl opacity-30" />
                     </div>
                 </div>
             </header>
 
-            {/* Club Selection Gallery */}
-           
-
             {/* Files Content - Single Section */}
-            <div className="bg-white rounded-xl shadow-md p-6">
-                <div className="flex flex-col lg:flex-row lg:items-center gap-4 mb-6">
-                    <div className="flex items-center gap-4">
-                        <label htmlFor="select-club" className="text-gray-700 font-medium min-w-max">
+            <div className="bg-white rounded-xl shadow-md p-4">
+                <div className="flex flex-col lg:flex-row lg:items-center gap-4 mb-4">
+                    <div className="flex items-center gap-2">
+                        <label htmlFor="select-club" className="text-gray-600 font-medium min-w-max cursor-pointer text-sm">
                             <FontAwesomeIcon icon={faFolder} className="text-purple-600 mr-1" /> Select Club:
                         </label>
                         <select
                             id="select-club"
-                            className="w-full sm:w-64 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-200 bg-white text-gray-700 transition"
+                            className="w-full sm:w-56 px-3 py-1 border border-gray-300 rounded-lg shadow-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-200 bg-white text-gray-600 transition cursor-pointer text-sm"
                             value={selectedClub}
                             onChange={e => setSelectedClub(e.target.value)}
                         >
@@ -231,37 +228,35 @@ export default function ClubFiles() {
                         <div className="relative">
                             <FontAwesomeIcon 
                                 icon={faSearch} 
-                                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" 
+                                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-xs" 
                             />
                             <input 
                                 type="text" 
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
+                                className="w-full border border-gray-300 rounded-lg pl-8 pr-3 py-1 focus:ring-1 focus:ring-purple-500 focus:border-transparent text-sm" 
                                 placeholder="Search files and images..." 
                             />
                         </div>
                     </div>
                 </div>
-                <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-2xl font-bold text-gray-800">
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-bold text-gray-800">
                         {selectedClub ? 
                             `${clubs.find(c => c.id.toString() === selectedClub)?.name} Files` : 
                             'All Club Files'
                         }
                     </h2>
-                    <div className="text-sm text-gray-500">
+                    <div className="text-xs text-gray-500">
                         {filteredImages.length} images • {filteredDocuments.length} documents
                     </div>
                 </div>
 
-                {/* Images Section */}
-                
                 {/* Horizontal Switcher for Gallery or Documents */}
-                <div className="flex items-center space-x-4 mb-8">
+                <div className="flex items-center space-x-2 mb-6">
                     <button
                         onClick={() => setShowGallery(true)}
-                        className={`flex items-center px-5 py-2 rounded-lg font-medium transition 
+                        className={`flex items-center px-4 py-1 rounded-lg font-semibold text-sm transition cursor-pointer 
                             ${showGallery ? "bg-purple-600 text-white shadow" : "bg-gray-100 text-gray-700 hover:bg-purple-100"}`}
                     >
                         <FontAwesomeIcon icon={faImage} className="mr-2" />
@@ -269,7 +264,7 @@ export default function ClubFiles() {
                     </button>
                     <button
                         onClick={() => setShowGallery(false)}
-                        className={`flex items-center px-5 py-2 rounded-lg font-medium transition 
+                        className={`flex items-center px-4 py-1 rounded-lg font-semibold text-sm transition cursor-pointer 
                             ${!showGallery ? "bg-purple-600 text-white shadow" : "bg-gray-100 text-gray-700 hover:bg-purple-100"}`}
                     >
                         <FontAwesomeIcon icon={faFileAlt} className="mr-2" />
@@ -280,12 +275,12 @@ export default function ClubFiles() {
                 {/* Gallery or Documents Section */}
                 {showGallery ? (
                     filteredImages.length > 0 ? (
-                        <div className="mb-8">
-                            <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center">
+                        <div className="mb-6">
+                            <h3 className="text-base font-semibold text-gray-700 mb-3 flex items-center">
                                 <FontAwesomeIcon icon={faImage} className="mr-2 text-purple-500" />
                                 Images ({filteredImages.length})
                             </h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                                 {filteredImages.map(image => (
                                     <div 
                                         key={image.id}
@@ -296,7 +291,7 @@ export default function ClubFiles() {
                                             <img 
                                                 src={image.url} 
                                                 alt={image.title}
-                                                className="w-full h-40 object-cover"
+                                                className="w-full h-32 object-cover"
                                             />
                                             <div className="absolute top-2 right-2">
                                                 <span className="bg-purple-500 text-white text-xs px-2 py-1 rounded">
@@ -304,8 +299,8 @@ export default function ClubFiles() {
                                                 </span>
                                             </div>
                                         </div>
-                                        <div className="p-3">
-                                            <h4 className="font-medium text-gray-800 mb-1 text-sm line-clamp-2">{image.title}</h4>
+                                        <div className="p-2">
+                                            <h4 className="font-medium text-gray-800 mb-1 text-xs line-clamp-2">{image.title}</h4>
                                             <div className="flex items-center text-xs text-gray-500 mb-1">
                                                 <FontAwesomeIcon icon={faUser} className="mr-1" />
                                                 {image.uploadedBy}
@@ -320,10 +315,10 @@ export default function ClubFiles() {
                             </div>
                         </div>
                     ) : (
-                        <div className="text-center py-12">
-                            <FontAwesomeIcon icon={faImage} className="text-gray-300 text-6xl mb-4" />
-                            <h3 className="text-xl font-medium text-gray-500 mb-2">No images found</h3>
-                            <p className="text-gray-400">
+                        <div className="text-center py-8">
+                            <FontAwesomeIcon icon={faImage} className="text-gray-300 text-5xl mb-3" />
+                            <h3 className="text-lg font-medium text-gray-500 mb-1">No images found</h3>
+                            <p className="text-gray-400 text-sm">
                                 {selectedClub ? 
                                     `No images found for ${clubs.find(c => c.id.toString() === selectedClub)?.name}` : 
                                     'No images found matching your search'
@@ -334,21 +329,21 @@ export default function ClubFiles() {
                 ) : (
                     filteredDocuments.length > 0 ? (
                         <div>
-                            <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center">
+                            <h3 className="text-base font-semibold text-gray-700 mb-3 flex items-center">
                                 <FontAwesomeIcon icon={faFileAlt} className="mr-2 text-purple-500" />
                                 Documents ({filteredDocuments.length})
                             </h3>
-                            <div className="space-y-3">
+                            <div className="space-y-2">
                                 {filteredDocuments.map(doc => (
-                                    <div key={doc.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200">
+                                    <div key={doc.id} className="bg-gray-50 border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow duration-200">
                                         <div className="flex items-center justify-between">
-                                            <div className="flex items-center space-x-4">
-                                                <div className={`p-3 rounded-lg ${getFileIconColor(doc.type)} bg-white`}>
-                                                    <FontAwesomeIcon icon={getFileIcon(doc.type)} className="text-xl" />
+                                            <div className="flex items-center space-x-3">
+                                                <div className={`p-2 rounded-lg ${getFileIconColor(doc.type)} bg-white`}>
+                                                    <FontAwesomeIcon icon={getFileIcon(doc.type)} className="text-lg" />
                                                 </div>
                                                 <div>
-                                                    <h4 className="font-semibold text-gray-800">{doc.name}</h4>
-                                                    <div className="flex items-center space-x-3 text-sm text-gray-500 mt-1">
+                                                    <h4 className="font-medium text-gray-800 text-sm">{doc.name}</h4>
+                                                    <div className="flex items-center space-x-2 text-xs text-gray-500 mt-1">
                                                         <span>{doc.size}</span>
                                                         <span>•</span>
                                                         <span>{clubs.find(c => c.id === doc.clubId)?.name}</span>
@@ -359,11 +354,11 @@ export default function ClubFiles() {
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div className="flex items-center space-x-2">
-                                                <button className="text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-200">
+                                            <div className="flex items-center space-x-1">
+                                                <button className="text-gray-500 hover:text-gray-700 p-1 rounded-lg hover:bg-gray-200 cursor-pointer">
                                                     <FontAwesomeIcon icon={faEye} />
                                                 </button>
-                                                <button className="text-purple-500 hover:text-purple-700 p-2 rounded-lg hover:bg-purple-50">
+                                                <button className="text-purple-500 hover:text-purple-700 p-1 rounded-lg hover:bg-purple-50 cursor-pointer">
                                                     <FontAwesomeIcon icon={faDownload} />
                                                 </button>
                                             </div>
@@ -373,10 +368,10 @@ export default function ClubFiles() {
                             </div>
                         </div>
                     ) : (
-                        <div className="text-center py-12">
-                            <FontAwesomeIcon icon={faFileAlt} className="text-gray-300 text-6xl mb-4" />
-                            <h3 className="text-xl font-medium text-gray-500 mb-2">No documents found</h3>
-                            <p className="text-gray-400">
+                        <div className="text-center py-8">
+                            <FontAwesomeIcon icon={faFileAlt} className="text-gray-300 text-5xl mb-3" />
+                            <h3 className="text-lg font-medium text-gray-500 mb-1">No documents found</h3>
+                            <p className="text-gray-400 text-sm">
                                 {selectedClub ? 
                                     `No documents found for ${clubs.find(c => c.id.toString() === selectedClub)?.name}` : 
                                     'No documents found matching your search'
@@ -388,10 +383,10 @@ export default function ClubFiles() {
 
                 {/* Empty State */}
                 {filteredImages.length === 0 && filteredDocuments.length === 0 && (
-                    <div className="text-center py-12">
-                        <FontAwesomeIcon icon={faFolder} className="text-gray-300 text-6xl mb-4" />
-                        <h3 className="text-xl font-medium text-gray-500 mb-2">No files found</h3>
-                        <p className="text-gray-400">
+                    <div className="text-center py-8">
+                        <FontAwesomeIcon icon={faFolder} className="text-gray-300 text-5xl mb-3" />
+                        <h3 className="text-lg font-medium text-gray-500 mb-1">No files found</h3>
+                        <p className="text-gray-400 text-sm">
                             {selectedClub ? 
                                 `No files found for ${clubs.find(c => c.id.toString() === selectedClub)?.name}` : 
                                 'No files found matching your search'

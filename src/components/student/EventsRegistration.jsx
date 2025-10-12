@@ -181,47 +181,47 @@ export default function EventsRegistration() {
   };
 
   const EventCard = ({ event, showActions = true }) => (
-    <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
-      <div className="p-6">
-        <div className="flex items-start justify-between mb-4">
+    <div className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300 cursor-pointer">
+      <div className="p-4">
+        <div className="flex items-start justify-between mb-3">
           <div className="flex items-center">
-            <img src={event.image} alt={event.title} className="h-12 w-12 rounded-lg object-cover mr-4" />
+            <img src={event.image} alt={event.title} className="h-10 w-10 rounded-md object-cover mr-3" />
             <div>
-              <h3 className="text-lg font-bold text-gray-800">{event.title}</h3>
-              <p className="text-sm text-gray-600">{event.club}</p>
-              <span className="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full mt-1">
+              <h3 className="text-md font-bold text-gray-800">{event.title}</h3>
+              <p className="text-xs text-gray-600">{event.club}</p>
+              <span className="inline-block bg-purple-100 text-purple-800 text-2xs px-1.5 py-0.5 rounded-full mt-1">
                 {event.category}
               </span>
             </div>
           </div>
-          <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(event.status)}`}>
+          <span className={`px-2 py-0.5 rounded-full text-2xs font-medium ${getStatusColor(event.status)}`}>
             {event.status}
           </span>
         </div>
         
-        <p className="text-gray-600 mb-4">{event.description}</p>
+        <p className="text-gray-600 mb-3 text-xs">{event.description}</p>
         
-        <div className="space-y-2 mb-4">
-          <div className="flex items-center text-sm text-gray-500">
-            <FontAwesomeIcon icon={faCalendarAlt} className="mr-2 text-blue-500" />
+        <div className="space-y-1.5 mb-3">
+          <div className="flex items-center text-2xs text-gray-500">
+            <FontAwesomeIcon icon={faCalendarAlt} className="mr-1.5 text-blue-500" />
             {event.date}
           </div>
-          <div className="flex items-center text-sm text-gray-500">
-            <FontAwesomeIcon icon={faClock} className="mr-2 text-blue-500" />
+          <div className="flex items-center text-2xs text-gray-500">
+            <FontAwesomeIcon icon={faClock} className="mr-1.5 text-blue-500" />
             {event.time}
           </div>
-          <div className="flex items-center text-sm text-gray-500">
-            <FontAwesomeIcon icon={faMapMarkerAlt} className="mr-2 text-blue-500" />
+          <div className="flex items-center text-2xs text-gray-500">
+            <FontAwesomeIcon icon={faMapMarkerAlt} className="mr-1.5 text-blue-500" />
             {event.location}
           </div>
-          <div className="flex items-center text-sm text-gray-500">
-            <FontAwesomeIcon icon={faUsers} className="mr-2 text-blue-500" />
+          <div className="flex items-center text-2xs text-gray-500">
+            <FontAwesomeIcon icon={faUsers} className="mr-1.5 text-blue-500" />
             {event.attendees}/{event.maxAttendees} attendees
           </div>
         </div>
 
         {event.registrationDate && (
-          <div className="text-xs text-gray-500 mb-4">
+          <div className="text-2xs text-gray-500 mb-3">
             Registered on: {event.registrationDate}
       </div>
         )}
@@ -230,15 +230,15 @@ export default function EventsRegistration() {
           <div className="flex items-center space-x-2">
             <button
               onClick={() => handleViewEvent(event.id)}
-              className="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              className="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer"
             >
               <FontAwesomeIcon icon={faEye} className="mr-1" />
-              View Details
+              View
             </button>
             {event.status === 'Available' && (
               <button
                 onClick={() => handleRegisterEvent(event.id)}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer"
               >
                 <FontAwesomeIcon icon={faPlus} className="mr-1" />
                 Register
@@ -247,7 +247,7 @@ export default function EventsRegistration() {
             {event.status === 'Registered' && (
               <button
                 onClick={() => handleUnregisterEvent(event.id)}
-                className="flex-1 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                className="flex-1 bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer"
               >
                 <FontAwesomeIcon icon={faTimes} className="mr-1" />
                 Unregister
@@ -260,46 +260,46 @@ export default function EventsRegistration() {
   );
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-gray-50 p-4">
       {/* Header */}
-      <header className="mb-8">
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-8 rounded-xl shadow-lg">
+      <header className="mb-6">
+        <div className="bg-gradient-to-r from-blue-500 to-purple-500 text-white p-6 rounded-lg shadow-md">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold mb-2">Events Registration</h1>
-              <p className="text-blue-100 text-lg">Discover and register for exciting club events</p>
+              <h1 className="text-2xl font-bold mb-1">Events Registration</h1>
+              <p className="text-blue-100 text-sm">Discover and register for club events</p>
             </div>
-            <FontAwesomeIcon icon={faCalendarAlt} className="text-white text-6xl opacity-30" />
+            <FontAwesomeIcon icon={faCalendarAlt} className="text-white text-4xl opacity-30" />
           </div>
         </div>
       </header>
 
       {/* Search and Filter Controls */}
-      <div className="bg-white p-6 rounded-xl shadow-md mb-8">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
           <div className="flex-1 max-w-md">
             <div className="relative">
               <FontAwesomeIcon 
                 icon={faSearch} 
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" 
+                className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-400 text-xs cursor-pointer" 
               />
               <input 
                 type="text" 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                className="w-full border border-gray-300 rounded-md pl-8 pr-3 py-2 focus:ring-1 focus:ring-blue-500 focus:border-transparent text-sm"
                 placeholder="Search events..." 
               />
             </div>
           </div>
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <div className="flex items-center">
-              <FontAwesomeIcon icon={faFilter} className="text-gray-500 mr-2" />
+              <FontAwesomeIcon icon={faFilter} className="text-gray-500 mr-2 cursor-pointer" />
               <select 
                 value={filterClub}
                 onChange={(e) => setFilterClub(e.target.value)}
-                className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="border border-gray-300 rounded-md px-2 py-1.5 focus:ring-1 focus:ring-blue-500 focus:border-transparent text-sm cursor-pointer"
               >
                 {clubs.map(club => (
                   <option key={club} value={club}>{club}</option>
@@ -311,40 +311,40 @@ export default function EventsRegistration() {
       </div>
 
       {/* Tab Navigation */}
-      <div className="bg-white p-6 rounded-xl shadow-md mb-8">
-        <div className="flex items-center space-x-4">
+      <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
+        <div className="flex items-center space-x-3">
           <button
             onClick={() => setActiveTab('upcoming')}
-            className={`flex items-center px-5 py-2 rounded-lg font-medium transition ${
-              activeTab === 'upcoming' ? "bg-blue-600 text-white shadow" : "bg-gray-100 text-gray-700 hover:bg-blue-100"
+            className={`flex items-center px-4 py-2 rounded-md font-medium text-xs transition cursor-pointer ${
+              activeTab === 'upcoming' ? "bg-blue-500 text-white shadow-sm" : "bg-gray-100 text-gray-600 hover:bg-blue-50"
             }`}
           >
-            <FontAwesomeIcon icon={faCalendarAlt} className="mr-2" />
-            Upcoming Events ({getFilteredEvents(upcomingEvents).length})
+            <FontAwesomeIcon icon={faCalendarAlt} className="mr-1.5" />
+            Upcoming ({getFilteredEvents(upcomingEvents).length})
           </button>
           <button
             onClick={() => setActiveTab('registered')}
-            className={`flex items-center px-5 py-2 rounded-lg font-medium transition ${
-              activeTab === 'registered' ? "bg-blue-600 text-white shadow" : "bg-gray-100 text-gray-700 hover:bg-blue-100"
+            className={`flex items-center px-4 py-2 rounded-md font-medium text-xs transition cursor-pointer ${
+              activeTab === 'registered' ? "bg-blue-500 text-white shadow-sm" : "bg-gray-100 text-gray-600 hover:bg-blue-50"
             }`}
           >
-            <FontAwesomeIcon icon={faCheckCircle} className="mr-2" />
-            My Registrations ({getFilteredEvents(registeredEvents).length})
+            <FontAwesomeIcon icon={faCheckCircle} className="mr-1.5" />
+            Registered ({getFilteredEvents(registeredEvents).length})
           </button>
           <button
             onClick={() => setActiveTab('past')}
-            className={`flex items-center px-5 py-2 rounded-lg font-medium transition ${
-              activeTab === 'past' ? "bg-blue-600 text-white shadow" : "bg-gray-100 text-gray-700 hover:bg-blue-100"
+            className={`flex items-center px-4 py-2 rounded-md font-medium text-xs transition cursor-pointer ${
+              activeTab === 'past' ? "bg-blue-500 text-white shadow-sm" : "bg-gray-100 text-gray-600 hover:bg-blue-50"
             }`}
           >
-            <FontAwesomeIcon icon={faGraduationCap} className="mr-2" />
-            Past Events ({getFilteredEvents(pastEvents).length})
+            <FontAwesomeIcon icon={faGraduationCap} className="mr-1.5" />
+            Past ({getFilteredEvents(pastEvents).length})
           </button>
         </div>
       </div>
 
       {/* Events Content */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {activeTab === 'upcoming' && getFilteredEvents(upcomingEvents).map(event => (
           <EventCard key={event.id} event={event} />
         ))}
@@ -354,51 +354,51 @@ export default function EventsRegistration() {
         ))}
         
         {activeTab === 'past' && getFilteredEvents(pastEvents).map(event => (
-          <div key={event.id} className="bg-white rounded-xl shadow-md overflow-hidden">
-            <div className="p-6">
-              <div className="flex items-start justify-between mb-4">
+          <div key={event.id} className="bg-white rounded-lg shadow-sm overflow-hidden cursor-pointer">
+            <div className="p-4">
+              <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center">
-                  <img src={event.image} alt={event.title} className="h-12 w-12 rounded-lg object-cover mr-4" />
+                  <img src={event.image} alt={event.title} className="h-10 w-10 rounded-md object-cover mr-3" />
                   <div>
-                    <h3 className="text-lg font-bold text-gray-800">{event.title}</h3>
-                    <p className="text-sm text-gray-600">{event.club}</p>
-                    <span className="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full mt-1">
+                    <h3 className="text-md font-bold text-gray-800">{event.title}</h3>
+                    <p className="text-xs text-gray-600">{event.club}</p>
+                    <span className="inline-block bg-purple-100 text-purple-800 text-2xs px-1.5 py-0.5 rounded-full mt-1">
                       {event.category}
                     </span>
                   </div>
                 </div>
                 <div className="text-right">
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(event.status)}`}>
+                  <span className={`px-2 py-0.5 rounded-full text-2xs font-medium ${getStatusColor(event.status)}`}>
                     {event.status}
                   </span>
                   {event.attended && (
                     <div className="mt-1">
-                      <span className="text-green-600 text-xs font-medium">✓ Attended</span>
+                      <span className="text-green-600 text-2xs font-medium">✓ Attended</span>
                     </div>
                   )}
                 </div>
               </div>
               
-              <p className="text-gray-600 mb-4">{event.description}</p>
+              <p className="text-gray-600 mb-3 text-xs">{event.description}</p>
               
-              <div className="space-y-2 mb-4">
-                <div className="flex items-center text-sm text-gray-500">
-                  <FontAwesomeIcon icon={faCalendarAlt} className="mr-2 text-blue-500" />
+              <div className="space-y-1.5 mb-3">
+                <div className="flex items-center text-2xs text-gray-500">
+                  <FontAwesomeIcon icon={faCalendarAlt} className="mr-1.5 text-blue-500" />
                   {event.date}
                 </div>
-                <div className="flex items-center text-sm text-gray-500">
-                  <FontAwesomeIcon icon={faClock} className="mr-2 text-blue-500" />
+                <div className="flex items-center text-2xs text-gray-500">
+                  <FontAwesomeIcon icon={faClock} className="mr-1.5 text-blue-500" />
                   {event.time}
                 </div>
-                <div className="flex items-center text-sm text-gray-500">
-                  <FontAwesomeIcon icon={faMapMarkerAlt} className="mr-2 text-blue-500" />
+                <div className="flex items-center text-2xs text-gray-500">
+                  <FontAwesomeIcon icon={faMapMarkerAlt} className="mr-1.5 text-blue-500" />
                   {event.location}
                 </div>
               </div>
 
               <button
                 onClick={() => handleViewEvent(event.id)}
-                className="w-full bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                className="w-full bg-gray-500 hover:bg-gray-600 text-white px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer"
               >
                 <FontAwesomeIcon icon={faEye} className="mr-1" />
                 View Details
@@ -412,10 +412,10 @@ export default function EventsRegistration() {
       {((activeTab === 'upcoming' && getFilteredEvents(upcomingEvents).length === 0) ||
         (activeTab === 'registered' && getFilteredEvents(registeredEvents).length === 0) ||
         (activeTab === 'past' && getFilteredEvents(pastEvents).length === 0)) && (
-        <div className="text-center py-12">
-          <FontAwesomeIcon icon={faCalendarAlt} className="text-gray-300 text-6xl mb-4" />
-          <h3 className="text-xl font-medium text-gray-500 mb-2">No events found</h3>
-          <p className="text-gray-400">Try adjusting your search or filters</p>
+        <div className="text-center py-10">
+          <FontAwesomeIcon icon={faCalendarAlt} className="text-gray-300 text-5xl mb-3" />
+          <h3 className="text-lg font-medium text-gray-500 mb-1.5">No events found</h3>
+          <p className="text-gray-400 text-sm">Try adjusting your search or filters</p>
         </div>
       )}
     </main>

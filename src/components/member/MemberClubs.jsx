@@ -1,150 +1,84 @@
-
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUsers, faCalendarAlt, faClock, faGraduationCap } from '@fortawesome/free-solid-svg-icons';
-
-
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faUsers, faSearch, faTag, faGraduationCap } from '@fortawesome/free-solid-svg-icons';
+import Header from '../common/Header';
+
+const mockClubs = [
+    { id: '1', name: 'Robotics Club', members: 89, imageUrl: '/img/Club2.png', category: 'Technology' },
+    { id: '2', name: 'Debate Society', members: 45, imageUrl: '/img/Club3.png', category: 'Arts' },
+    { id: '3', name: 'Photography Club', members: 127, imageUrl: '/img/Club1.png', category: 'Arts' },
+    { id: '4', name: 'Art & Creativity Club', members: 64, imageUrl: '/img/Club4.png', category: 'Arts' },
+];
 
 export default function MemberClubs() {
-    const [joinedClubs, setJoinedClubs] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState(null);
-
-    const navigate = useNavigate();
+    const [clubs, setClubs] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [category, setCategory] = useState('All');
 
     useEffect(() => {
-        const fetchClubs = () => {
-            setTimeout(() => {
-                try {
-                    const mockClubs = [
-                        { id: '1', name: 'Club 1', members: 10, imageUrl: 'https://picsum.photos/200/300' },
-                        { id: '2', name: 'Club 2', members: 15, imageUrl: 'https://picsum.photos/200/300' },
-                        { id: '3', name: 'Club 3', members: 20, imageUrl: 'https://picsum.photos/200/300' },
-                    ];
-                    setJoinedClubs(mockClubs);
-                    setIsLoading(false);
-                } catch (err) {
-                    setError('Failed to fetch clubs.');
-                    setIsLoading(false);
-                }
-            }, 1000);
-        };
-        fetchClubs();
+        // Simulating API call
+        setClubs(mockClubs);
     }, []);
 
- 
-
-    if (isLoading) {
-        return <p>Loading clubs...</p>;
-    }
-
-    if (error) {
-        return <p className="text-red-500">Error: {error}</p>;
-    }
+    const filteredClubs = clubs.filter(club => {
+        const matchesSearch = club.name.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesCategory = category === 'All' || club.category === category;
+        return matchesSearch && matchesCategory;
+    });
 
     return (
-        <div className="p-2">
-            <main>
-                <div className="flex justify-between items-center">
-                    <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-8 rounded-xl shadow-lg mb-8 flex items-center justify-between w-full">
-                        <div>
-                            <h1 className="text-3xl font-bold mb-2">My Clubs</h1>
-                            <p className="text-purple-100 text-lg">Manage and view your joined clubs</p>
-                        </div>
-                        <FontAwesomeIcon icon={faGraduationCap} className="text-white text-6xl opacity-30" />
+        <div className="p-4 sm:p-6 bg-gray-100 min-h-screen">
+            <Header 
+                title="My Clubs" 
+                subtitle="Manage and view your joined clubs"
+                icon={faGraduationCap} 
+            />
+
+            <div className="mb-8 p-4 bg-white rounded-lg shadow-lg">
+                <div className="flex flex-col md:flex-row gap-4 justify-between">
+                    <div className="relative flex-grow">
+                        <input
+                            type="text"
+                            placeholder="Search clubs..."
+                            className="pl-10 pr-4 py-2 bg-gray-50 border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                        <FontAwesomeIcon icon={faSearch} className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                    </div>
+                    <div className="relative">
+                        <select
+                            className="pl-10 pr-4 py-2 bg-gray-50 border border-gray-300 rounded-lg w-full md:w-auto focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 cursor-pointer"
+                            value={category}
+                            onChange={(e) => setCategory(e.target.value)}
+                        >
+                            <option value="All">All Categories</option>
+                            <option value="Technology">Technology</option>
+                            <option value="Sports">Sports</option>
+                            <option value="Arts">Arts</option>
+                        </select>
+                        <FontAwesomeIcon icon={faTag} className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
                     </div>
                 </div>
-                <div className="bg-white rounded-xl shadow-md p-6">
-                    <div className="flex justify-between items-center mb-6">
-                        <div className="relative w-1/3">
-                            <input
-                                type="text"
-                                placeholder="Search clubs..."
-                                className="pl-10 pr-4 py-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                            />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {filteredClubs.map(club => (
+                    <div key={club.id} className="bg-white rounded-xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300">
+                        <img src={club.imageUrl} alt={club.name} className="w-full h-48 object-cover"/>
+                        <div className="p-6">
+                            <h3 className="text-2xl font-bold text-gray-900 mb-2">{club.name}</h3>
+                            <div className="flex items-center text-gray-600 mb-4">
+                                <FontAwesomeIcon icon={faUsers} className="mr-2"/>
+                                <span>{club.members} members</span>
+                            </div>
+                            <button className="w-full bg-blue-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-600 transition-all duration-300">
+                                View Club
+                            </button>
                         </div>
-                        <select
-                            className="border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        >
-                            <option value="">All Categories</option>
-                            <option value="technology">Technology</option>
-                            <option value="sports">Sports</option>
-                            <option value="arts">Arts</option>
-                        </select>
                     </div>
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th
-                                        scope="col"
-                                        className="px-3 py-2 text-left text-[10px] font-medium text-gray-500 uppercase tracking-wide"
-                                    >
-                                        CLUB
-                                    </th>
-                                    <th
-                                        scope="col"
-                                        className="px-3 py-2 text-left text-[10px] font-medium text-gray-500 uppercase tracking-wide"
-                                    >
-                                        MEMBERS
-                                    </th>
-                                    <th
-                                        scope="col"
-                                        className="px-3 py-2 text-left text-[10px] font-medium text-gray-500 uppercase tracking-wide"
-                                    >
-                                        EVENTS
-                                    </th>
-                                    <th
-                                        scope="col"
-                                        className="px-3 py-2 text-left text-[10px] font-medium text-gray-500 uppercase tracking-wide"
-                                    >
-                                        STATUS
-                                    </th>
-                                    <th
-                                        scope="col"
-                                        className="px-3 py-2 text-center text-[10px] font-medium text-gray-500 uppercase tracking-wide"
-                                    >
-                                        ACTIONS
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                                {joinedClubs.map((club) => (
-                                    <tr key={club.id} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center">
-                                                <div className="flex-shrink-0 h-10 w-10">
-                                                    <img className="h-10 w-10 rounded-full" src={club.imageUrl} alt="" />
-                                                </div>
-                                                <div className="ml-4">
-                                                    <div className="text-sm font-medium text-gray-900">{club.name}</div>
-                                                    <div className="text-xs text-gray-500">Club Description</div> {/* Placeholder for description */}
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500">{club.members}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500">0</td> {/* Placeholder for events */}
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                                Active
-                                            </span>
-                                        </td> {/* Placeholder for status */}
-                                        <td className="px-6 py-4 whitespace-nowrap text-center text-xs font-medium">
-                                            <a
-                                                href={`/clubs/${club.id}`}      
-                                                className="text-purple-600 px-4 py-2 rounded-lg hover:text-purple-700 font-medium"
-                                            >
-                                                View
-                                            </a>
-                                            
-                                           
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                      </div>
-            </main>
+                ))}
+            </div>
         </div>
     );
 }

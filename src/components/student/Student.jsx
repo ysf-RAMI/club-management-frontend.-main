@@ -2,7 +2,7 @@ import { useState } from 'react';
 import Sidebar from '../common/Layout/Sidebar';
 import StdDashboard from './StdDashboard';
 import EventsRegistration from './EventsRegistration';
-import StdProfile from './StdProfile';
+import Profile from '../common/Profile';
 
 export default function Student() {
   const [activeContent, setActiveContent] = useState('Dashboard');
@@ -12,16 +12,27 @@ export default function Student() {
     setActiveContent(link);
   };
 
+  const studentUser = {
+    firstName: "Alex",
+    lastName: "Ray", 
+    email: "alex.ray@university.edu",
+    phone: "+1 (555) 555-5555",
+    department: "Science",
+    bio: "A curious student exploring the world of science and technology. Eager to join clubs and participate in exciting events.",
+    role: "Student",
+    profilePicture: "/img/Club3.png"
+  }
+
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar onLinkClick={handleLinkClick} activeContent={activeContent} />
-      <div className="flex-1 p-6">
+      <div className="flex-1 p-4">
         {/* Conditional rendering based on activeContent */}
         {activeContent === 'Dashboard' && (
           <StdDashboard onLinkClick={handleLinkClick} activeContent={activeContent} />
         )}
         {activeContent === 'Events Registration' && <EventsRegistration />}
-        {activeContent === 'Profile' && <StdProfile />}
+        {activeContent === 'Profile' && <Profile user={studentUser} />}
         {activeContent === 'Logout' && (
           <div className="flex items-center justify-center min-h-screen">
             <div className="text-center">

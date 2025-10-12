@@ -1,11 +1,47 @@
-import { faEdit, faPlus, faSearch, faTrash, faUser } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faPlus, faSearch, faTrash, faUsers, faUsersCog, faCalendarAlt } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import AddClubDialog from './Club Dialogs/addClub';
 import DeleteClubDialog from './Club Dialogs/deleteClub';
 import { useState } from 'react';
 import EditClubDialog from './Club Dialogs/editClub';
+import Header from '../common/Header';
+
+// Dummy data for clubs
+const initialClubs = [
+  {
+    id: 1,
+    name: 'Photography Club',
+    description: 'Capture moments, create memories, and explore the art of photography.',
+    image: '/img/Club1.png',
+    members: 85,
+    events: 12,
+    status: 'Active',
+    created: 'Jan 15, 2024',
+  },
+  {
+    id: 2,
+    name: 'Debate Society',
+    description: 'Engage in intellectual discourse and sharpen your public speaking skills.',
+    image: '/img/Club2.png',
+    members: 45,
+    events: 8,
+    status: 'Active',
+    created: 'Feb 01, 2024',
+  },
+  {
+    id: 3,
+    name: 'Art & Creativity Club',
+    description: 'A place for artists to collaborate, create, and showcase their work.',
+    image: '/img/Club3.png',
+    members: 60,
+    events: 5,
+    status: 'Inactive',
+    created: 'Mar 10, 2024',
+  },
+];
 
 export default function ManageClubs() {
+  const [clubs] = useState(initialClubs);
   const [isAddClubModalOpen, setIsAddClubModalOpen] = useState(false);
   const [isDeleteClubModalOpen, setIsDeleteClubModalOpen] = useState(false);
   const [isEditClubModalOpen, setIsEditClubModalOpen] = useState(false);
@@ -15,8 +51,8 @@ export default function ManageClubs() {
   const openAddClubModal = () => setIsAddClubModalOpen(true);
   const closeAddClubModal = () => setIsAddClubModalOpen(false);
 
-  const openDeleteClubModal = (clubName) => {
-    setClubToDelete(clubName);
+  const openDeleteClubModal = (club) => {
+    setClubToDelete(club);
     setIsDeleteClubModalOpen(true);
   };
   const closeDeleteClubModal = () => {
@@ -34,241 +70,104 @@ export default function ManageClubs() {
   };
 
   const handleDeleteConfirm = () => {
-    // Logic to delete the club
-    console.log(`Deleting club: ${clubToDelete}`);
+    console.log(`Deleting club: ${clubToDelete?.name}`);
     closeDeleteClubModal();
   };
 
   const handleEditConfirm = (updatedClub) => {
-    // Logic to update the club
     console.log('Updating club:', updatedClub);
     closeEditClubModal();
   };
 
+  const getStatusColor = (status) => {
+    return status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+  };
+
   return (
-    <div className="p-2">
-      <div>
-        {isAddClubModalOpen && <AddClubDialog onClose={closeAddClubModal} />}
-        {isDeleteClubModalOpen && (
-          <DeleteClubDialog
-            open={isDeleteClubModalOpen}
-            onClose={closeDeleteClubModal}
-            onConfirm={handleDeleteConfirm}
-            clubName={clubToDelete}
+    <div className="p-4 bg-gray-100 text-gray-900 min-h-screen">
+      <Header title="Manage Clubs" subtitle="Create, edit, and manage all clubs." icon={faUsers} />
+      
+      {isAddClubModalOpen && <AddClubDialog onClose={closeAddClubModal} />}
+      {isDeleteClubModalOpen && (
+        <DeleteClubDialog
+          open={isDeleteClubModalOpen}
+          onClose={closeDeleteClubModal}
+          onConfirm={handleDeleteConfirm}
+          clubName={clubToDelete?.name}
+        />
+      )}
+      {isEditClubModalOpen && (
+        <EditClubDialog
+          open={isEditClubModalOpen}
+          onClose={closeEditClubModal}
+          onConfirm={handleEditConfirm}
+          club={clubToEdit}
+        />
+      )}
+
+      <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+        <div className="relative w-full md:w-1/3">
+          <input
+            type="text"
+            placeholder="Search clubs..."
+            className="pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 shadow-sm"
           />
-        )}
-        {isEditClubModalOpen && (
-          <EditClubDialog
-            open={isEditClubModalOpen}
-            onClose={closeEditClubModal}
-            onConfirm={handleEditConfirm}
-            club={clubToEdit}
-          />
-        )}
-      </div>
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Manage Clubs</h1>
-          <p className="text-gray-600 text-sm">Create, edit, and manage all clubs.</p>
+          <FontAwesomeIcon icon={faSearch} className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
         </div>
         <button
-          className="bg-blue-600 text-white p-1 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center"
+          className="bg-blue-500 text-white px-5 py-2 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-100 flex items-center justify-center gap-2 cursor-pointer shadow-md w-full md:w-auto"
           onClick={openAddClubModal}
         >
-          <FontAwesomeIcon icon={faPlus} className="text-sm" />
-          <p className="text-white text-md px-2">Create New Club</p>
+          <FontAwesomeIcon icon={faPlus} />
+          Create New Club
         </button>
       </div>
-      <div className="bg-white rounded-lg shadow">
-        <div className="flex justify-between items-center  p-4">
-          <div className="relative w-1/3">
-            <input
-              type="text"
-              placeholder="Search clubs..."
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
 
-            <FontAwesomeIcon
-              icon={faSearch}
-              className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2"
-            />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {clubs.map((club) => (
+          <div key={club.id} className="bg-white rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 flex flex-col">
+            <img className="w-full h-48 object-cover" src={club.image} alt={club.name} />
+            <div className="p-6 flex flex-col flex-grow">
+              <h3 className="text-xl font-bold text-gray-900 mb-2">{club.name}</h3>
+              <p className="text-gray-600 text-sm mb-4 flex-grow">{club.description}</p>
+              
+              <div className="flex justify-between items-center text-sm text-gray-700 mb-4 border-t border-b border-gray-200 py-3">
+                <div className="flex items-center gap-2">
+                  <FontAwesomeIcon icon={faUsersCog} className="text-gray-400"/>
+                  <span>{club.members} Members</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <FontAwesomeIcon icon={faCalendarAlt} className="text-gray-400" />
+                  <span>{club.events} Events</span>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center mb-6">
+                <span className={`px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(club.status)}`}>
+                  {club.status}
+                </span>
+                 <span className="text-xs text-gray-500">Created: {club.created}</span>
+              </div>
+              
+              <div className="flex justify-end space-x-3 mt-auto">
+                <button
+                  onClick={() => openEditClubModal(club)}
+                  className="text-blue-500 hover:text-blue-600 transition-colors duration-200 p-2 rounded-full bg-gray-100 hover:bg-gray-200 cursor-pointer"
+                  aria-label={`Edit ${club.name}`}
+                >
+                  <FontAwesomeIcon icon={faEdit} className="text-lg" />
+                </button>
+                <button
+                  onClick={() => openDeleteClubModal(club)}
+                  className="text-red-500 hover:text-red-600 transition-colors duration-200 p-2 rounded-full bg-gray-100 hover:bg-gray-200 cursor-pointer"
+                  aria-label={`Delete ${club.name}`}
+                >
+                  <FontAwesomeIcon icon={faTrash} className="text-lg" />
+                </button>
+              </div>
+            </div>
           </div>
-          <select
-            className="border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            defaultValue="all"
-          >
-            <option value="all">All Status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
-        </div>
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th
-                scope="col"
-                className="px-3 py-2 text-left text-[10px] font-medium text-gray-500 uppercase tracking-wide"
-              >
-                CLUB
-              </th>
-              <th
-                scope="col"
-                className="px-3 py-2 text-left text-[10px] font-medium text-gray-500 uppercase tracking-wide"
-              >
-                MEMBERS
-              </th>
-              <th
-                scope="col"
-                className="px-3 py-2 text-left text-[10px] font-medium text-gray-500 uppercase tracking-wide"
-              >
-                EVENTS
-              </th>
-              <th
-                scope="col"
-                className="px-3 py-2 text-left text-[10px] font-medium text-gray-500 uppercase tracking-wide"
-              >
-                STATUS
-              </th>
-              <th
-                scope="col"
-                className="px-3 py-2 text-left text-[10px] font-medium text-gray-500 uppercase tracking-wide"
-              >
-                CREATED
-              </th>
-              <th
-                scope="col"
-                className="px-3 py-2 text-center text-[10px] font-medium text-gray-500 uppercase tracking-wide"
-              >
-                ACTIONS
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            <tr>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 h-10 w-10">
-                    <img className="h-10 w-10 rounded-full" src="/img/Club1.png" alt="" />
-                  </div>
-                  <div className="ml-4">
-                    <div className="text-sm font-medium text-gray-900">Photography Club</div>
-                    <div className="text-xs text-gray-500">Capture moments, create memories</div>
-                  </div>
-                </div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500">85</td>
-              <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500">12</td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                  Active
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500">Jan 15, 2024</td>
-              <td className="px-6 py-4 whitespace-nowrap text-center text-xs font-medium">
-                <a
-                  className="text-blue-600 hover:text-blue-900 mr-3"
-                  onClick={() =>
-                    openEditClubModal({
-                      id: 1,
-                      name: 'Photography Club',
-                      description: 'Capture moments, create memories',
-                    })
-                  }
-                >
-                  <FontAwesomeIcon icon={faEdit} className="text-sm" />
-                </a>
-                <a
-                  className="text-blue-600 hover:text-blue-900 mr-3"
-                  onClick={() => openDeleteClubModal('Photography Club')}
-                >
-                  <FontAwesomeIcon icon={faTrash} className="text-sm" />
-                </a>
-              </td>
-            </tr>
-            <tr>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 h-10 w-10">
-                    <img className="h-10 w-10 rounded-full" src="/img/Club1.png" alt="" />
-                  </div>
-                  <div className="ml-4">
-                    <div className="text-sm font-medium text-gray-900">Photography Club</div>
-                    <div className="text-xs text-gray-500">Capture moments, create memories</div>
-                  </div>
-                </div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500">85</td>
-              <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500">12</td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                  Active
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500">Jan 15, 2024</td>
-              <td className="px-6 py-4 whitespace-nowrap text-center text-xs font-medium">
-                <a
-                  className="text-blue-600 hover:text-blue-900 mr-3"
-                  onClick={() =>
-                    openEditClubModal({
-                      id: 2,
-                      name: 'Photography Club',
-                      description: 'Capture moments, create memories',
-                    })
-                  }
-                >
-                  <FontAwesomeIcon icon={faEdit} className="text-sm" />
-                </a>
-                <a
-                  className="text-blue-600 hover:text-blue-900 mr-3"
-                  onClick={() => openDeleteClubModal('Photography Club')}
-                >
-                  <FontAwesomeIcon icon={faTrash} className="text-sm" />
-                </a>
-              </td>
-            </tr>
-            <tr>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 h-10 w-10">
-                    <img className="h-10 w-10 rounded-full" src="/img/Club1.png" alt="" />
-                  </div>
-                  <div className="ml-4">
-                    <div className="text-sm font-medium text-gray-900">Photography Club</div>
-                    <div className="text-xs text-gray-500">Capture moments, create memories</div>
-                  </div>
-                </div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500">85</td>
-              <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500">12</td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                  Active
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500">Jan 15, 2024</td>
-              <td className="px-6 py-4 whitespace-nowrap text-center text-xs font-medium">
-                <a
-                  className="text-blue-600 hover:text-blue-900 mr-3"
-                  onClick={() =>
-                    openEditClubModal({
-                      id: 3,
-                      name: 'Photography Club',
-                      description: 'Capture moments, create memories',
-                    })
-                  }
-                >
-                  <FontAwesomeIcon icon={faEdit} className="text-sm" />
-                </a>
-                <a
-                  className="text-blue-600 hover:text-blue-900 mr-3"
-                  onClick={() => openDeleteClubModal('Photography Club')}
-                >
-                  <FontAwesomeIcon icon={faTrash} className="text-sm" />
-                </a>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        ))}
       </div>
     </div>
   );

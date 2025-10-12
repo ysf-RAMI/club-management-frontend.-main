@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import Header from '../common/Header';
+import { faCalendarAlt, faSearch } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 export default function ManageEvents() {
   const [events, setEvents] = useState([
@@ -47,55 +50,58 @@ export default function ManageEvents() {
   };
 
   if (events.length === 0) {
-    return <div className="text-center text-gray-500">No events available.</div>;
+    return <div className="text-center text-gray-500 p-4">No events available.</div>;
   }
 
   return (
-    <div className="p-2">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-800">Manage Events</h2>
-          <p className="text-sm text-gray-500">
-            View and manage events pending approval or refusal.
-          </p>
-        </div>
-      </div>
-      <div className="overflow-x-auto bg-white shadow-md rounded-lg overflow-hidden">
-        <div className="p-4 flex items-center justify-between">
-          <input
-            type="text"
-            placeholder="Search events..."
-            className="border border-gray-300 rounded-md px-4 py-2 w-xs"
-          />
-          <select className="border border-gray-300 rounded-md px-4 py-2">
+    <div className="p-4">
+      <Header 
+        title="Manage Events" 
+        subtitle="View and manage events pending approval or refusal." 
+        icon={faCalendarAlt} 
+      />
+      <div className="overflow-x-auto bg-white shadow-sm rounded-lg">
+        <div className="p-4 flex items-center justify-between border-b border-gray-200">
+          <div className="relative w-1/3">
+            <input
+              type="text"
+              placeholder="Search events..."
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <FontAwesomeIcon
+              icon={faSearch}
+              className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2"
+            />
+          </div>
+          <select className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
             <option value="pending">Pending</option>
             <option value="approved">Approved</option>
             <option value="refused">Refused</option>
           </select>
         </div>
         <table className="min-w-full bg-white">
-          <thead className="bg-gray-100 text-gray-400 text-xs font-bold">
+          <thead className="bg-gray-50">
             <tr>
-              <th className="py-3 px-4 text-left">Club</th>
-              <th className="py-3 px-4 text-left">Title</th>
-              <th className="py-3 px-4 text-left">Date</th>
-              <th className="py-3 px-4 text-left">Location</th>
-              <th className="py-3 px-4 text-left">Status</th>
-              <th className="py-3 px-4 text-left">Actions</th>
+              <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Club</th>
+              <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+              <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+              <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+              <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
-          <tbody className="text-gray-700">
+          <tbody className="text-gray-700 divide-y divide-gray-200">
             {events
               .filter((event) => event.status === 'pending')
               .map((event) => (
-                <tr key={event.id} className="border-b border-gray-200">
-                  <td className="py-3 px-4">{event.club}</td>
-                  <td className="py-3 px-4">{event.title}</td>
-                  <td className="py-3 px-4">{event.date}</td>
-                  <td className="py-3 px-4">{event.location}</td>
-                  <td className="py-3 px-4">
+                <tr key={event.id}>
+                  <td className="py-4 px-6 whitespace-nowrap">{event.club}</td>
+                  <td className="py-4 px-6 whitespace-nowrap">{event.title}</td>
+                  <td className="py-4 px-6 whitespace-nowrap">{event.date}</td>
+                  <td className="py-4 px-6 whitespace-nowrap">{event.location}</td>
+                  <td className="py-4 px-6 whitespace-nowrap">
                     <span
-                      className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                         event.status === 'pending'
                           ? 'bg-yellow-100 text-yellow-800'
                           : event.status === 'approved'
@@ -106,16 +112,16 @@ export default function ManageEvents() {
                       {event.status}
                     </span>
                   </td>
-                  <td className="py-3 px-4 flex space-x-2">
+                  <td className="py-4 px-6 whitespace-nowrap flex space-x-2">
                     <button
                       onClick={() => handleApprove(event.id)}
-                      className="bg-green-300 text-gray-800 px-3 py-1 rounded-md hover:bg-green-600"
+                      className="bg-green-500 text-white px-3 py-1 rounded-lg hover:bg-green-600 cursor-pointer"
                     >
                       Approve
                     </button>
                     <button
                       onClick={() => handleRefuse(event.id)}
-                      className="bg-red-300 text-gray-800 px-3 py-1 rounded-md hover:bg-red-600"
+                      className="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600 cursor-pointer"
                     >
                       Refuse
                     </button>
