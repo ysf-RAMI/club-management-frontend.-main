@@ -18,15 +18,19 @@ import { useEffect, useState } from 'react';
 export default function Sidebar({ onLinkClick, activeContent }) {
   const [activeLink, setActiveLink] = useState(activeContent || 'Dashboard');
   const [userRole, setUserRole] = useState('');
+  const [hasClubs, setHasClubs] = useState(false); // Assume student has no clubs initially
 
   useEffect(() => {
     const url = window.location.pathname;
     if (url.includes('/student')) {
       setUserRole('student');
+      // In a real app, you would fetch the user's club memberships
+      // and set hasClubs accordingly. For now, we'll keep it false.
     } else if (url.includes('/admin')) {
       setUserRole('admin');
     } else if (url.includes('/member')) {
       setUserRole('member');
+      setHasClubs(true); // Members always have clubs
     } else if (url.includes('/AdMember')) {
       setUserRole('AdMember');
     }
@@ -74,7 +78,7 @@ export default function Sidebar({ onLinkClick, activeContent }) {
           </>
         )}
 
-        {userRole === 'member' && (
+        {userRole === 'member' && hasClubs && (
           <>
             <a
               href="#"

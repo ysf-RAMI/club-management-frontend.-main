@@ -16,13 +16,13 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 
 export default function StdDashboard({ onLinkClick, activeContent }) {
-  // Sample student data
+  // Sample student data for a student who has not joined any clubs
   const studentData = {
     name: "Alex Johnson",
     department: "Computer Science",
     year: "Junior",
-    clubsJoined: 2,
-    eventsAttended: 8,
+    clubsJoined: 0,
+    eventsAttended: 0,
     pendingRequests: 1
   }
 
@@ -35,22 +35,6 @@ export default function StdDashboard({ onLinkClick, activeContent }) {
       appliedDate: "3 days ago",
       status: "Pending",
       description: "Learn photography techniques and join photo walks"
-    },
-    {
-      id: 2,
-      name: "Robotics Club",
-      image: "/img/Club2.png",
-      appliedDate: "1 week ago",
-      status: "Approved",
-      description: "Build robots and explore AI technology"
-    },
-    {
-      id: 3,
-      name: "Debate Society",
-      image: "/img/Club3.png",
-      appliedDate: "2 weeks ago",
-      status: "Approved",
-      description: "Engage in intellectual discussions and competitive debating"
     }
   ]
 
@@ -94,34 +78,6 @@ export default function StdDashboard({ onLinkClick, activeContent }) {
     }
   ]
 
-  // Sample recent activity
-  const recentActivity = [
-    {
-      id: 1,
-      action: "Joined Robotics Club",
-      date: "1 week ago",
-      type: "club",
-      icon: faUsers,
-      color: "green"
-    },
-    {
-      id: 2,
-      action: "Attended Tech Talk Event",
-      date: "2 weeks ago",
-      type: "event",
-      icon: faCalendarAlt,
-      color: "blue"
-    },
-    {
-      id: 3,
-      action: "Applied to Photography Club",
-      date: "3 days ago",
-      type: "request",
-      icon: faPlus,
-      color: "purple"
-    }
-  ]
-
   const handleRegisterEvent = (eventId) => {
     console.log('Registering for event:', eventId)
     // Here you would call API to register for event
@@ -148,33 +104,10 @@ export default function StdDashboard({ onLinkClick, activeContent }) {
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-8 rounded-xl shadow-lg mb-8 flex items-center justify-between">
           <div>
-            <h2 className="text-3xl font-bold mb-2">Welcome back, {studentData.name}! 👋</h2>
+            <h2 className="text-3xl font-bold mb-2">Welcome, {studentData.name}! 👋</h2>
             <p className="text-blue-100 text-lg">
               Ready to explore new clubs and events? Let's make the most of your university experience.
             </p>
-            <div className="mt-4 flex space-x-6">
-              <div className="flex items-center">
-                <FontAwesomeIcon icon={faGraduationCap} className="text-blue-300 mr-2" />
-                <div>
-                  <p className="text-xl font-bold">{studentData.year}</p>
-                  <p className="text-blue-100 text-sm">{studentData.department}</p>
-                </div>
-              </div>
-              <div className="flex items-center">
-                <FontAwesomeIcon icon={faUsers} className="text-blue-300 mr-2" />
-                <div>
-                  <p className="text-xl font-bold">{studentData.clubsJoined}</p>
-                  <p className="text-blue-100 text-sm">Clubs Joined</p>
-                </div>
-              </div>
-              <div className="flex items-center">
-                <FontAwesomeIcon icon={faCalendarAlt} className="text-blue-300 mr-2" />
-                <div>
-                  <p className="text-xl font-bold">{studentData.eventsAttended}</p>
-                  <p className="text-blue-100 text-sm">Events Attended</p>
-                </div>
-              </div>
-            </div>
           </div>
           <FontAwesomeIcon icon={faGraduationCap} className="text-white text-6xl opacity-30" />
         </div>
@@ -281,72 +214,6 @@ export default function StdDashboard({ onLinkClick, activeContent }) {
 
           {/* Right Column */}
           <div className="lg:col-span-1 space-y-6">
-            {/* Quick Stats */}
-            <div className="bg-white p-6 rounded-xl shadow-md">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Quick Stats</h3>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <FontAwesomeIcon icon={faUsers} className="text-blue-500 mr-3" />
-                    <span className="text-gray-600">Clubs Joined</span>
-                  </div>
-                  <span className="font-bold text-blue-600">{studentData.clubsJoined}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <FontAwesomeIcon icon={faCalendarAlt} className="text-green-500 mr-3" />
-                    <span className="text-gray-600">Events Attended</span>
-                  </div>
-                  <span className="font-bold text-green-600">{studentData.eventsAttended}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <FontAwesomeIcon icon={faClock} className="text-yellow-500 mr-3" />
-                    <span className="text-gray-600">Pending Requests</span>
-                  </div>
-                  <span className="font-bold text-yellow-600">{studentData.pendingRequests}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <FontAwesomeIcon icon={faTrophy} className="text-purple-500 mr-3" />
-                    <span className="text-gray-600">Achievements</span>
-                  </div>
-                  <span className="font-bold text-purple-600">5</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Recent Activity */}
-            <div className="bg-white p-6 rounded-xl shadow-md">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent Activity</h3>
-              <div className="space-y-3">
-                {recentActivity.map(activity => (
-                  <div key={activity.id} className="flex items-center">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${
-                      activity.color === 'green' ? 'bg-green-100' :
-                      activity.color === 'blue' ? 'bg-blue-100' :
-                      activity.color === 'purple' ? 'bg-purple-100' :
-                      'bg-gray-100'
-                    }`}>
-                      <FontAwesomeIcon 
-                        icon={activity.icon} 
-                        className={`text-sm ${
-                          activity.color === 'green' ? 'text-green-600' :
-                          activity.color === 'blue' ? 'text-blue-600' :
-                          activity.color === 'purple' ? 'text-purple-600' :
-                          'text-gray-600'
-                        }`} 
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-800">{activity.action}</p>
-                      <p className="text-xs text-gray-500">{activity.date}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
             {/* Discover More */}
             <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 rounded-xl shadow-md">
               <h3 className="text-lg font-bold mb-2">Discover More</h3>

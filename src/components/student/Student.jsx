@@ -6,6 +6,7 @@ import StdProfile from './StdProfile';
 
 export default function Student() {
   const [activeContent, setActiveContent] = useState('Dashboard');
+  const [hasClubs, setHasClubs] = useState(false); // Assume student has no clubs initially
 
   const handleLinkClick = (link) => {
     setActiveContent(link);
