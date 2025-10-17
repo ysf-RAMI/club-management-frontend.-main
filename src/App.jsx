@@ -12,6 +12,7 @@ import Student from './components/student/Student';
 import Member from './components/member/Member';
 import Admin from './components/admin/Admin';
 import AdMember from './components/admin-member/AdMember';
+import UserLayout from './components/common/Layout/UserLayout';
 
 export default function App() {
   return (
@@ -29,10 +30,15 @@ export default function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Login />} />
           </Route>
-          <Route path="/student" element={<Student />} />
+
+          <Route element={<UserLayout />}> 
+
+             <Route path="/student" element={<Student />} />
           <Route path="/member" element={<Member />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/admember" element={<AdMember />} />
+          </Route>
+         
         </Routes>
       </div>
     </Router>

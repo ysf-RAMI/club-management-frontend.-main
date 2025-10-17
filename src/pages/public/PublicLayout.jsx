@@ -5,6 +5,7 @@ import Footer from '../../components/common/Layout/Footer';
 const PublicLayout = () => (
   <>
     <Header />
+    
     <Outlet />
     <Footer />
   </>
