@@ -1,145 +1,27 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { fetchClubs } from '../../../app/clubSlice';
+import { useDispatch, useSelector } from 'react-redux';
+
 
 export default function Clubs() {
   const [currentPage, setCurrentPage] = useState(1);
   const clubsPerPage = 8; // Display 8 clubs per page
+  const dispatch = useDispatch();
+  const { clubs, status, error } = useSelector((state) => state.clubs);
 
-  const clubData = [
-    {
-      id: 1,
-      image: '/img/Club1.png',
-      category: 'Technology',
-      status: 'Active',
-      title: 'Robotics Club',
-      description:
-        'Build, program, and compete with cutting-edge robotics technology. Join us for workshops and competitions.',
-      members: 45,
-      events: 5,
-    },
-    {
-      id: 2,
-      image: '/img/Club2.png',
-      category: 'Academic',
-      status: 'Active',
-      title: 'Debate Society',
-      description:
-        'Sharpen your argumentation skills and engage in intellectual discourse with passionate debaters.',
-      members: 32,
-      events: 3,
-    },
-    {
-      id: 3,
-      image: '/img/Club3.png',
-      category: 'Arts & Culture',
-      status: 'Active',
-      title: 'Photography Club',
-      description:
-        'Capture moments and develop your artistic vision through photography workshops and photo walks.',
-      members: 28,
-      events: 7,
-    },
-    {
-      id: 4,
-      image: '/img/Club1.png',
-      category: 'Sports',
-      status: 'Active',
-      title: 'Basketball Club',
-      description:
-        'Join our competitive basketball team and participate in inter-university tournaments.',
-      members: 22,
-      events: 12,
-    },
-    {
-      id: 5,
-      image: '/img/Club2.png',
-      category: 'Arts & Culture',
-      status: 'Active',
-      title: 'Drama Society',
-      description: 'Express yourself through theater, acting workshops, and dramatic performances.',
-      members: 35,
-      events: 4,
-    },
-    {
-      id: 6,
-      image: '/img/Club3.png',
-      category: 'Volunteer',
-      status: 'Active',
-      title: 'Volunteer Club',
-      description:
-        'Make a difference in the community through various volunteer and service projects.',
-      members: 67,
-      events: 15,
-    },
-    {
-      id: 7,
-      image: '/img/Club1.png',
-      category: 'Academic',
-      status: 'Moderate',
-      title: 'Chess Club',
-      description:
-        'Develop strategic thinking and compete in chess tournaments with fellow enthusiasts.',
-      members: 18,
-      events: 6,
-    },
-    {
-      id: 8,
-      image: '/img/Club2.png',
-      category: 'Arts & Culture',
-      status: 'Active',
-      title: 'Music Society',
-      description:
-        'Share your love for music through performances, jam sessions, and musical collaborations.',
-      members: 41,
-      events: 8,
-    },
-    {
-      id: 9,
-      image: '/img/Club3.png',
-      category: 'Technology',
-      status: 'Active',
-      title: 'Coding Club',
-      description: 'Learn and practice various programming languages and algorithms.',
-      members: 50,
-      events: 10,
-    },
-    {
-      id: 10,
-      image: '/img/Club1.png',
-      category: 'Sports',
-      status: 'Active',
-      title: 'Football Club',
-      description: 'Join our football team and compete in inter-university tournaments.',
-      members: 60,
-      events: 10,
-    },
-    {
-      id: 11,
-      image: '/img/Club2.png',
-      category: 'Academic',
-      status: 'Active',
-      title: 'Science Club',
-      description: 'Explore scientific concepts through experiments and discussions.',
-      members: 30,
-      events: 5,
-    },
-    {
-      id: 12,
-      image: '/img/Club3.png',
-      category: 'Arts & Culture',
-      status: 'Active',
-      title: 'Painting Club',
-      description: 'Express your creativity through various painting techniques.',
-      members: 25,
-      events: 4,
-    },
-  ];
+
+    useEffect(() => {
+    dispatch(fetchClubs());
+  }, [dispatch]);
+
+
 
   // Pagination logic
   const indexOfLastClub = currentPage * clubsPerPage;
   const indexOfFirstClub = indexOfLastClub - clubsPerPage;
-  const currentClubs = clubData.slice(indexOfFirstClub, indexOfLastClub);
+  const currentClubs = clubs.slice(indexOfFirstClub, indexOfLastClub);
 
-  const totalPages = Math.ceil(clubData.length / clubsPerPage);
+  const totalPages = Math.ceil(clubs.length / clubsPerPage);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
@@ -224,7 +106,7 @@ export default function Clubs() {
           <div className="flex justify-between items-center mb-6 px-4 md:px-14">
             <div>
               <p className="text-gray-500">
-                Showing <span className="font-bold text-black">{clubData.length}</span> clubs
+                Showing <span className="font-bold text-black">{clubs.length}</span> clubs
               </p>
             </div>
             <div className="flex items-center">
@@ -316,10 +198,10 @@ export default function Clubs() {
                     {club.status}
                   </span>
                 </div>
-                <h2 className="text-lg font-semibold text-gray-800 mb-2">{club.title}</h2>
+                <h2 className="text-lg font-semibold text-gray-800 mb-2">{club.name}</h2>
                 <p className="text-gray-600 text-sm mb-4 line-clamp-2">{club.description}</p>
                 <div className="flex justify-between text-gray-500 text-sm mb-4">
-                  <span>{club.members} members</span>
+                  <span>{club.maxMembrs} members</span>
                   <span>{club.events} events</span>
                 </div>
                 <button className="w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">

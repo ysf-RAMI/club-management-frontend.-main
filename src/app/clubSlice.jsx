@@ -1,21 +1,21 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
-const url = import.meta.env.VITE_API_URL;
-
 export const fetchClubs = createAsyncThunk(
     'clubs/fetchClubs',
     async () => {
-        const response = await fetch(`${url}/clubs`);
+        const response = await fetch('/api/clubs');
         const data = await response.json();
         return data;
     }
 );
 
+
+
 const clubSlice = createSlice({
   name: 'clubs',
   initialState: {
     clubs: [],
-    status: 'idle',
+    loading: false,
     error: null,
   },
   reducers: {},
