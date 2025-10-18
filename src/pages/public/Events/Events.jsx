@@ -163,7 +163,7 @@ export default function Events() {
                   )}
                   <button
                     onClick={() => navigate(`/events/${event.id}`)}
-                    className="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 transition duration-300 mt-auto"
+                    className="w-full cursor-pointer bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 transition duration-300 mt-auto"
                   >
                     View Details
                   </button>

@@ -1,7 +1,15 @@
 import { useEffect, useState } from 'react';
+import { useAuth } from '../../hooks/useAuth';
 
 const Login = () => {
-  const [activeTab, setActiveTab] = useState();
+  const [activeTab, setActiveTab] = useState('login');
+  const { login } = useAuth();
+
+  // simple form state for login
+  const [emailInput, setEmailInput] = useState('');
+  const [passwordInput, setPasswordInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const url = window.location.href;
   useEffect(() => {
     url.includes('register') ? setActiveTab('register') : setActiveTab('login');
@@ -139,7 +147,38 @@ const Login = () => {
               <p className="text-center text-gray-500 text-sm mb-6">
                 Sign in to access your account
               </p>
-              <form>
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  setError('');
+                  setLoading(true);
+                  try {
+                    // json-server style: /api/users?email=... returns an array
+                    const res = await fetch(`/api/users?email=${encodeURIComponent(emailInput)}`);
+                    if (!res.ok) {
+                      setError('Login failed (network)');
+                      setLoading(false);
+                      return;
+                    }
+                    const users = await res.json();
+                    const user = Array.isArray(users) && users.length ? users[0] : null;
+                    if (!user || user.password !== passwordInput) {
+                      setError('Invalid email or password');
+                      setLoading(false);
+                      return;
+                    }
+
+                    // store user and redirect
+                    login(user);
+                    // simple redirect to home or dashboard
+                    window.location.href = '/';
+                  } catch (err) {
+                    setError(String(err.message || err));
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+              >
                 <div className="mb-4 relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <svg
@@ -154,6 +193,8 @@ const Login = () => {
                     </svg>
                   </div>
                   <input
+                    value={emailInput}
+                    onChange={(e) => setEmailInput(e.target.value)}
                     type="email"
                     id="email"
                     name="email"
@@ -179,6 +220,8 @@ const Login = () => {
                     </svg>
                   </div>
                   <input
+                    value={passwordInput}
+                    onChange={(e) => setPasswordInput(e.target.value)}
                     type="password"
                     id="password"
                     name="password"
@@ -205,26 +248,41 @@ const Login = () => {
                     </a>
                   </div>
                 </div>
+                {error && <p className="text-sm text-red-600 mb-2">{error}</p>}
                 <div className="mb-4">
                   <button
                     type="submit"
-                    className="w-full p-2 bg-[#6366f1] text-white rounded-md hover:bg-[#4f54c9] flex items-center justify-center"
+                    disabled={loading}
+                    className="w-full p-2 bg-[#6366f1] text-white rounded-md hover:bg-[#4f54c9] flex items-center justify-center disabled:opacity-60"
                   >
-                    <svg
-                      className="h-5 w-5 mr-2"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
-                      />
-                    </svg>
-                    Sign In
+                    {loading ? (
+                      <svg className="animate-spin h-5 w-5 mr-2 text-white" viewBox="0 0 24 24">
+                        <circle
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                          fill="none"
+                        />
+                      </svg>
+                    ) : (
+                      <svg
+                        className="h-5 w-5 mr-2"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
+                        />
+                      </svg>
+                    )}
+                    {loading ? 'Signing in...' : 'Sign In'}
                   </button>
                 </div>
               </form>

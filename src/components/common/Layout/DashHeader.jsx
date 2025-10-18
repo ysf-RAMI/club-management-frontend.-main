@@ -16,7 +16,7 @@ export default function DashHeader() {
         </div>
         <div className="flex items-center hover:text-blue-500 cursor-pointer">
           <select name="" id="" defaultValue={'Youssef Ramy'} className="">
-            <option value="Youssef Ramy" disabled selected hidden>
+            <option value="Youssef Ramy" disabled hidden>
               Youssef Ramy
             </option>
             <option value="">Profile</option>
