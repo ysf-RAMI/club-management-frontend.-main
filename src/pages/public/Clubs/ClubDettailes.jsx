@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchClubById } from '../../../app/clubSlice';
-import { fetchEvents as fetchEventsAction } from '../../../app/eventSlice';
 import Loader from '../../../components/common/UI/Loader';
 import {
   FaUsers,
@@ -10,9 +9,6 @@ import {
   FaCalendarAlt,
   FaClock,
   FaMapMarkerAlt,
-  FaEnvelope,
-  FaGlobe,
-  FaTwitter,
 } from 'react-icons/fa';
 import { IoMdCheckmarkCircleOutline } from 'react-icons/io';
 
@@ -20,21 +16,19 @@ export default function ClubDettailes() {
   const { id } = useParams();
   const dispatch = useDispatch();
   const { currentClub, loading, error } = useSelector((state) => state.clubs);
-  const { events, loading: eventsLoading } = useSelector((state) => state.events);
   const navigate = useNavigate();
 
   useEffect(() => {
     if (id) {
       dispatch(fetchClubById(id));
-      dispatch(fetchEventsAction());
     }
   }, [dispatch, id]);
 
-  // Filter events for this club
-  const clubEvents = events.filter((event) => event.club_id === parseInt(id));
+  // Directly use events from currentClub
+  const clubEvents = currentClub?.events || [];
 
   if (loading) {
-    return <Loader />;
+    return <Loader />;    
   }
 
   if (error) {
@@ -112,7 +106,7 @@ export default function ClubDettailes() {
               <h1 className="text-5xl font-bold">{club.name}</h1>
               <div className="mt-4 flex items-center space-x-4">
                 <span className="flex items-center text-lg">
-                  <FaUsers className="mr-2" /> {club.maxMembrs || 0} Members
+                  <FaUsers className="mr-2" /> {club.max_members || 0} Members
                 </span>
                 <span className="flex items-center text-lg">
                   <FaCalendarAlt className="mr-2" /> Created{' '}
@@ -143,7 +137,7 @@ export default function ClubDettailes() {
               <div className="grid grid-cols-2 gap-4 text-gray-600">
                 <div className="flex items-center space-x-2">
                   <FaUsers className="text-purple-600" />
-                  <span>{club.maxMembrs || 0} Members</span>
+                  <span>{club.max_members || 0} Members</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <FaCalendarAlt className="text-purple-600" />
@@ -177,7 +171,7 @@ export default function ClubDettailes() {
                 </div>
                 <div className="flex items-center space-x-2">
                   <IoMdCheckmarkCircleOutline className="text-green-500" />
-                  <span>Maximum Members: {club.maxMembrs || 'Unlimited'}</span>
+                  <span>Maximum Members: {club.max_members || 'Unlimited'}</span>
                 </div>
               </div>
             </div>
@@ -230,7 +224,7 @@ export default function ClubDettailes() {
                   <FaUsers className="text-purple-600" />
                   <div>
                     <p className="font-semibold text-gray-800">Members</p>
-                    <p className="text-sm text-gray-600">{club.maxMembrs || 0} maximum</p>
+                    <p className="text-sm text-gray-600">{club.max_members || 0} maximum</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">

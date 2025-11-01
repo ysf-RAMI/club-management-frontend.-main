@@ -44,7 +44,6 @@ const applyFilters = (state) => {
         );
     }
 
-    // Apply club filter
     if (state.currentClub !== 'all') {
         filtered = filtered.filter(event => event.club_id === parseInt(state.currentClub));
     }
@@ -53,7 +52,6 @@ const applyFilters = (state) => {
     applySorting(state);
 };
 
-// Helper function to apply sorting
 const applySorting = (state) => {
     switch (state.currentSort) {
         case 'date-asc':

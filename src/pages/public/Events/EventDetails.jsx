@@ -1,9 +1,10 @@
-import React, { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchEventById } from '../../../app/eventSlice';
-import { fetchClubs } from '../../../app/clubSlice';
+import { fetchUserById } from '../../../app/studentSlice';
 import Loader from '../../../components/common/UI/Loader';
+import { fetchClubById } from '../../../app/clubSlice';
 
 export default function EventDetails() {
   const { id } = useParams();
@@ -11,14 +12,27 @@ export default function EventDetails() {
   const navigate = useNavigate();
 
   const { currentEvent, loading, error } = useSelector((state) => state.events);
-  const { clubs } = useSelector((state) => state.clubs);
+  const { currentClub } = useSelector((state) => state.clubs);
+  const [eventCreator, setEventCreator] = useState(null);
 
   useEffect(() => {
     if (id) {
       dispatch(fetchEventById(id));
-      dispatch(fetchClubs());
     }
   }, [dispatch, id]);
+
+  useEffect(() => {
+    if (currentEvent?.created_by) {
+      dispatch(fetchUserById(currentEvent.created_by)).then((action) => {
+        if (action.payload) {
+          setEventCreator(action.payload.data);
+        }
+      });
+    }
+    if (currentEvent?.club_id) {
+      dispatch(fetchClubById(currentEvent.club_id));
+    }
+  }, [currentEvent, dispatch]);
 
   if (loading) {
     return <Loader />;
@@ -47,7 +61,7 @@ export default function EventDetails() {
   }
 
   const event = currentEvent;
-  const club = clubs.find((c) => c.id === event.club_id);
+  const club = currentClub; // Correctly assign club from clubSlice
   return (
     <div className="min-h-screen bg-gray-100 max-w-7xl mx-auto">
       <p className=" bg-white text-indigo-600 text-lg p-4  border-b border-gray-100">
@@ -121,7 +135,9 @@ export default function EventDetails() {
             <div className="grid grid-cols-2 gap-4 mb-6">
               <div>
                 <p className="font-semibold text-gray-800">Created By</p>
-                <p className="text-gray-600">User #{event.created_by}</p>
+                <p className="text-gray-600">
+                  {eventCreator ? eventCreator.name : `User #${event.created_by}`}
+                </p>
               </div>
               <div>
                 <p className="font-semibold text-gray-800">Created At</p>
@@ -237,7 +253,7 @@ export default function EventDetails() {
                     {club ? club.name : 'Unknown Club'}
                   </p>
                   <p className="text-sm text-gray-500">
-                    {club ? `${club.maxMembrs || 0} members` : 'Unknown'}
+                    {club ? `${club.max_members || 0} members` : 'Unknown'}
                   </p>
                 </div>
               </div>
@@ -257,17 +273,37 @@ export default function EventDetails() {
             <h2 className="text-2xl font-bold mb-4">
               More Events from {club ? club.name : 'This Club'}
             </h2>
-            <div className="text-center py-8">
-              <p className="text-gray-500">
-                No other events from this club available at the moment.
-              </p>
-              <button
-                className="mt-4 bg-violet-600 text-white px-6 py-2 rounded-lg hover:bg-violet-700"
-                onClick={() => navigate('/events')}
-              >
-                View All Events
-              </button>
-            </div>
+            {club?.events && club.events.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {club.events.map((relatedEvent) => (
+                  <div key={relatedEvent.id} className="border p-4 rounded-lg shadow-sm">
+                    <h3 className="text-lg font-semibold">{relatedEvent.title}</h3>
+                    <p className="text-gray-600">
+                      {new Date(relatedEvent.date).toLocaleDateString()}
+                    </p>
+                    <p className="text-gray-700">{relatedEvent.description.substring(0, 100)}...</p>
+                    <button
+                      className="mt-2 text-violet-600 hover:text-violet-800"
+                      onClick={() => navigate(`/events/${relatedEvent.id}`)}
+                    >
+                      View Event
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500">
+                  No other events from this club available at the moment.
+                </p>
+                <button
+                  className="mt-4 bg-violet-600 text-white px-6 py-2 rounded-lg hover:bg-violet-700"
+                  onClick={() => navigate('/events')}
+                >
+                  View All Events
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

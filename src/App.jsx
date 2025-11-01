@@ -1,4 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import PublicLayout from './pages/public/PublicLayout';
 import Home from './pages/public/Home/Home';
 import Clubs from './pages/public/Clubs/Clubs';
@@ -8,19 +10,20 @@ import EventDetails from './pages/public/Events/EventDetails';
 import Contact from './pages/public/Contact';
 import About from './pages/public/About';
 import Login from './pages/auth/Login';
+import { Provider } from 'react-redux';
+import { store } from './app/store';
+import Register from './pages/auth/Register';
+import ProtectedRoutes from './components/security/ProtectedRoutes';
+import UserLayout from './components/common/Layout/UserLayout';
 import Student from './components/student/Student';
 import Member from './components/member/Member';
 import Admin from './components/admin/Admin';
 import AdMember from './components/admin-member/AdMember';
-import UserLayout from './components/common/Layout/UserLayout';
-import { Provider } from 'react-redux';
-import { store } from './app/store';
 
 export default function App() {
   return (
-
-
     <Provider store={store}>
+      <ToastContainer />
       <Router>
         <div className="min-h-screen bg-white">
           <Routes>
@@ -33,21 +36,46 @@ export default function App() {
               <Route path="/contact" element={<Contact />} />
               <Route path="/about" element={<About />} />
               <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Login />} />
+              <Route path="/register" element={<Register />} />
             </Route>
 
             <Route element={<UserLayout />}>
-
-              <Route path="/student" element={<Student />} />
-              <Route path="/member" element={<Member />} />
-              <Route path="/admin" element={<Admin />} />
-              <Route path="/admember" element={<AdMember />} />
+              <Route
+                path="/student"
+                element={
+                  <ProtectedRoutes allowedRoles={['student']}>
+                    <Student />
+                  </ProtectedRoutes>
+                }
+              />
+              <Route
+                path="/member"
+                element={
+                  <ProtectedRoutes allowedRoles={['member']}>
+                    <Member />
+                  </ProtectedRoutes>
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoutes allowedRoles={['admin']}>
+                    <Admin />
+                  </ProtectedRoutes>
+                }
+              />
+              <Route
+                path="/adminmember"
+                element={
+                  <ProtectedRoutes allowedRoles={['admin-member']}>
+                    <AdMember />
+                  </ProtectedRoutes>
+                }
+              />
             </Route>
-
           </Routes>
         </div>
       </Router>
     </Provider>
-
   );
 }

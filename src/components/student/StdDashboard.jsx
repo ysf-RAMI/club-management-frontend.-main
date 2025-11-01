@@ -3,7 +3,7 @@ import { faGraduationCap, faPlus, faEye } from '@fortawesome/free-solid-svg-icon
 import Header from '../common/Header';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect, useRef, useState } from 'react';
-import { fetchStdDashboard, fetchStudentRegisteredEvents } from '../../app/studentSlice';
+import { fetchStudentRegisteredEvents } from '../../app/studentSlice';
 import { useNavigate } from 'react-router-dom';
 
 export default function StdDashboard({ onLinkClick, activeContent }) {
@@ -46,7 +46,7 @@ export default function StdDashboard({ onLinkClick, activeContent }) {
 
   useEffect(() => {
     if (!didFetchRef.current) {
-      dispatch(fetchStdDashboard());
+      // dispatch(fetchStdDashboard()); // Removed as per user request
       didFetchRef.current = true;
     }
   }, [dispatch]);

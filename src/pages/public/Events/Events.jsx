@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchEvents, searchEvents, filterByClub, sortEvents, clearEventFilters } from '../../../app/eventSlice';
-import { fetchClubs } from '../../../app/clubSlice';
+
 import Loader from '../../../components/common/UI/Loader';
 import { FaCalendarAlt, FaClock, FaMapMarkerAlt, FaUsers } from 'react-icons/fa';
 
@@ -17,7 +17,6 @@ export default function Events() {
 
   useEffect(() => {
     dispatch(fetchEvents());
-    dispatch(fetchClubs());
   }, [dispatch]);
 
   const indexOfLastEvent = currentPage * eventsPerPage;
@@ -80,17 +79,8 @@ export default function Events() {
             </div>
 
             {/* Filter Dropdowns */}
-            <select
-              className="border border-gray-300 p-2 rounded-lg h-10 flex-grow"
-              onChange={(e) => dispatch(filterByClub({ clubId: e.target.value }))}
-            >
-              <option value="all">All Clubs</option>
-              {clubs.map((club) => (
-                <option key={club.id} value={club.id}>
-                  {club.name}
-                </option>
-              ))}
-            </select>
+           
+              
             <select
               className="border border-gray-300 p-2 rounded-lg h-10 flex-grow"
               onChange={(e) => dispatch(sortEvents({ sort: e.target.value }))}
@@ -133,7 +123,7 @@ export default function Events() {
         {/* Event Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-12 max-w-7xl mx-auto">
           {currentEvents.map((event) => {
-            const club = clubs.find(c => c.id === event.club_id);
+        
             return (
               <div
                 key={event.id}
@@ -147,7 +137,7 @@ export default function Events() {
                 <div className="p-4 flex flex-col flex-grow">
                   <div className="flex justify-between items-center mb-2">
                     <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                      {club ? club.name : 'Unknown Club'}
+                 
                     </span>
                     <span className="text-gray-500 text-sm">{new Date(event.date).toLocaleDateString()}</span>
                   </div>

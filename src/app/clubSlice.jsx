@@ -10,10 +10,7 @@ export const fetchClubs = createAsyncThunk('clubs/fetchClubs', async () => {
     const data = await response.json();
     return data;
   } catch (error) {
-    console.warn('API not available, using local data:', error.message);
-    const response = await fetch('/data.json');
-    const data = await response.json();
-    return data.clubs;
+    throw error;
   }
 });
 
@@ -54,7 +51,6 @@ const applyFilters = (state) => {
           return c === 'sports' || c === 'sport';
         });
         break;
-      case 'literature':
       case 'litt\u00e9rature':
       case 'literature':
         filtered = filtered.filter((club) => {
@@ -97,10 +93,10 @@ const applySorting = (state) => {
       state.filteredClubs.sort((a, b) => b.name.localeCompare(a.name));
       break;
     case 'members-asc':
-      state.filteredClubs.sort((a, b) => (a.maxMembrs || 0) - (b.maxMembrs || 0));
+      state.filteredClubs.sort((a, b) => (a.max_members || 0) - (b.max_members || 0));
       break;
     case 'members-desc':
-      state.filteredClubs.sort((a, b) => (b.maxMembrs || 0) - (a.maxMembrs || 0));
+      state.filteredClubs.sort((a, b) => (b.max_members || 0) - (a.max_members || 0));
       break;
     default:
       break;

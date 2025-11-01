@@ -1,6 +1,10 @@
 import { NavLink, Link } from 'react-router-dom';
+import { AuthConext } from '../../../contexts/AuthContext';
+import { useContext } from 'react';
 
 export default function Header() {
+  const { isAuthenticated, user } = useContext(AuthConext);
+  const role = user?.role;
   const getNavLinkClass = ({ isActive }) =>
     isActive
       ? 'text-sm/6 font-semibold text-[#6366f1] underline'
@@ -34,19 +38,37 @@ export default function Header() {
           <NavLink to="/contact" className={getNavLinkClass}>
             Contact
           </NavLink>
+          {isAuthenticated && (
+            <NavLink
+              to={
+                role === 'student'
+                  ? '/student'
+                  : role === 'member'
+                    ? '/member'
+                    : role === 'admin'
+                      ? '/admin'
+                      : '/adminMember'
+              }
+              className={getNavLinkClass}
+            >
+              Dashboard
+            </NavLink>
+          )}
         </div>
 
-        <div className="hidden lg:flex lg:flex-1 lg:justify-end">
-          <Link to="/login" className="text-sm/6 font-semibold text-black px-4 py-2">
-            Login
-          </Link>
-          <Link
-            to="/register"
-            className="text-sm/6 font-semibold text-white bg-[#6366f1] px-4 py-2 rounded-md hover:bg-[#5a5dcc] active:bg-[#4a4dcc] cursor-pointer"
-          >
-            Register
-          </Link>
-        </div>
+        {!isAuthenticated && (
+          <div className="hidden lg:flex lg:flex-1 lg:justify-end">
+            <Link to="/login" className="text-sm/6 font-semibold text-black px-4 py-2">
+              Login
+            </Link>
+            <Link
+              to="/register"
+              className="text-sm/6 font-semibold text-white bg-[#6366f1] px-4 py-2 rounded-md hover:bg-[#5a5dcc] active:bg-[#4a4dcc] cursor-pointer"
+            >
+              Register
+            </Link>
+          </div>
+        )}
       </nav>
     </header>
   );

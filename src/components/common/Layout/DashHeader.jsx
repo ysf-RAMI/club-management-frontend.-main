@@ -1,4 +1,9 @@
+import { useContext } from 'react';
+import { AuthConext } from '../../../contexts/AuthContext';
+
 export default function DashHeader() {
+  const { user, Logout } = useContext(AuthConext);
+
   return (
     <header className="bg-white border-b-2 border-gray-100 flex justify-between items-center max-w-7xl mx-auto">
       <nav aria-label="Global" className=" flex max-w-7xl items-center p-6 lg:px-8">
@@ -15,13 +20,7 @@ export default function DashHeader() {
           </div>
         </div>
         <div className="flex items-center hover:text-blue-500 cursor-pointer">
-          <select name="" id="" defaultValue={'Youssef Ramy'} className="">
-            <option value="Youssef Ramy" disabled hidden>
-              Youssef Ramy
-            </option>
-            <option value="">Profile</option>
-            <option value="">Logout</option>
-          </select>
+          {user?.name?.toUpperCase()}
         </div>
       </nav>
     </header>
