@@ -5,6 +5,9 @@ import {
   faUserTimes, faEye, faCrown
 } from '@fortawesome/free-solid-svg-icons';
 import Header from '../common/Header';
+import { useSelector } from 'react-redux';
+
+
 
 // Reusable Stat Card Component
 const StatCard = ({ title, value, icon, color }) => (
@@ -92,6 +95,11 @@ const recentEvents = [
 
 export default function AdMemberDashboard({ onLinkClick }) {
 
+  const {clubs} = useSelector((state) => state.clubs);
+  
+
+
+
   const handleApproveMember = (memberId) => {
     console.log('Approving member:', memberId)
   }
@@ -104,7 +112,7 @@ export default function AdMemberDashboard({ onLinkClick }) {
     <div className="p-4 sm:p-6 bg-gray-100 min-h-screen">
       <Header 
         title={`${clubData.name} Dashboard`} 
-        subtitle={`Welcome, ${clubData.adminName}! Manage your club and oversee member activities.`}
+        subtitle={`Welcome, Manage your club and oversee member activities.`}
         icon={faCrown} 
       />
 

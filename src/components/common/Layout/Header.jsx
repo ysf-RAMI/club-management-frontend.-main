@@ -1,9 +1,9 @@
 import { NavLink, Link } from 'react-router-dom';
-import { AuthConext } from '../../../contexts/AuthContext';
+import { AuthContext } from '../../../contexts/AuthContext';
 import { useContext } from 'react';
 
 export default function Header() {
-  const { isAuthenticated, user } = useContext(AuthConext);
+  const { isAuthenticated, user } = useContext(AuthContext);
   const role = user?.role;
   const getNavLinkClass = ({ isActive }) =>
     isActive

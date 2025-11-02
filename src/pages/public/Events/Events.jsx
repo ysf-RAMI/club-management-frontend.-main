@@ -50,9 +50,9 @@ export default function Events() {
         </p>
       </div>
 
-      <div className="container mx-auto ">
+      <div className="container  mx-auto ">
         {/* Search and Filter Bar */}
-        <div className="bg-white p-6 px-12 shadow-sm mb-6">
+        <div className="bg-white  p-6 px-12 shadow-sm mb-6">
           <div className="flex flex-wrap items-center gap-4 max-w-7xl mx-auto">
             {/* Search Input */}
             <div className="relative flex items-center flex-grow">

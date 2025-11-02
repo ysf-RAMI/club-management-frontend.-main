@@ -14,25 +14,27 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useContext, useEffect, useState } from 'react';
-import { AuthConext } from '../../../contexts/AuthContext';
+import { useAuth } from '../../../contexts/AuthContext';
 
 export default function Sidebar({ onLinkClick, activeContent }) {
   const [activeLink, setActiveLink] = useState(activeContent || 'Dashboard');
   const [userRole, setUserRole] = useState('');
   const [hasClubs, setHasClubs] = useState(false); // Assume student has no clubs initially
-  const { Logout } = useContext(AuthConext);
+  const { Logout } = useAuth();
+
+  
 
   useEffect(() => {
     const url = window.location.pathname;
     if (url.includes('/student')) {
       setUserRole('student');
-    } else if (url.includes('/admin')) {
-      setUserRole('admin');
+    } else if (url.includes('/adminMember')) {
+      setUserRole('admin-member');
     } else if (url.includes('/member')) {
       setUserRole('member');
       setHasClubs(true); // Members always have clubs
-    } else if (url.includes('/AdMember')) {
-      setUserRole('AdMember');
+    } else if (url.includes('/admin')) {
+      setUserRole('admin');
     }
   }, [window.location.pathname]);
 
@@ -161,7 +163,7 @@ export default function Sidebar({ onLinkClick, activeContent }) {
           </>
         )}
 
-        {userRole === 'AdMember' && (
+        {userRole === 'admin-member' && (
           <>
             <a
               href="#"
@@ -222,7 +224,7 @@ export default function Sidebar({ onLinkClick, activeContent }) {
           onClick={() => handleLinkClick('Logout')}
         >
           <FontAwesomeIcon icon={faRightFromBracket} className="text-1xl" />{' '}
-          <span className="ml-2 text-sm font-medium" onClick={Logout}>Logout</span>
+          <button className="ml-2 text-sm font-medium cursor-pointer" onClick={Logout}>Logout</button>
         </a>
       </div>
     </div>

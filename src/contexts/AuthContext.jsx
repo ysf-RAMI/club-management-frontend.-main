@@ -1,45 +1,42 @@
-import { createContext, useEffect, useState } from 'react';
-import { API_BASE_URL } from '../config/api';
+import React, { createContext, useState, useEffect, useContext } from 'react';
 import { toast } from 'react-toastify';
+import { API_BASE_URL } from '../config/api';
 
-const AuthConext = createContext();
+export const AuthContext = createContext(null);
 
-const AuthConextProvider = ({ children }) => {
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  return context;
+};
+
+const AuthContextProvider = ({ children }) => {
   const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')) || null);
-  const [token, setToken] = useState(localStorage.getItem('token') || null);
+  const [token, setToken] = useState(localStorage.getItem('access_token') || null);
   const [role, setRole] = useState(localStorage.getItem('role') || null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const checkAuthenticationStatus = () => {
-    const storedAccessToken = localStorage.getItem('access_token');
-    storedAccessToken ? setIsAuthenticated(true) : setIsAuthenticated(false);
-  };
-
   const refreshToken = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/auth/refresh', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('refresh_token')}`,
+          Authorization: `Bearer ${token}`,
         },
       });
       const data = await response.json();
       if (response.ok) {
         setToken(data.access_token);
-        console.log('Login API response data:', data);
         localStorage.setItem('access_token', data.access_token);
         localStorage.setItem('expires_in', data.expires_in);
         return true;
       } else {
-        console.error('Failed to refresh token:', data);
-        logout();
+        Logout();
         return false;
       }
     } catch (error) {
-      console.error('Error refreshing token:', error);
-      logout();
+      Logout();
       return false;
     }
   };
@@ -53,21 +50,31 @@ const AuthConextProvider = ({ children }) => {
       const currentTime = Date.now();
 
       if (currentTime >= expirationTime) {
-        console.log('Access token expired, attempting to refresh...');
         const refreshed = await refreshToken();
         if (!refreshed) {
-          console.log('Failed to refresh token, logging out.');
-          logout();
+          Logout();
         }
       }
     }
   };
 
   useEffect(() => {
-    checkAuthenticationStatus();
-    const interval = setInterval(checkTokenExpiration, 60 * 1000); // Check every minute
-    return () => clearInterval(interval);
-  }, [token]);
+    const newIsAuthenticated = !!token;
+    setIsAuthenticated(newIsAuthenticated);
+    setLoading(false);
+
+    // Set up interval for token expiration check only if authenticated
+    let interval;
+    if (newIsAuthenticated) {
+      interval = setInterval(checkTokenExpiration, 60 * 60 * 1000); // Check every hour
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [token]); // Dependency on token
 
   const Login = async (email, password) => {
     try {
@@ -80,7 +87,6 @@ const AuthConextProvider = ({ children }) => {
       });
 
       const data = await response.json();
-      console.log('Login API response data:', data);
 
       if (!response.ok) {
         throw new Error(data.message || 'Login failed');
@@ -94,21 +100,17 @@ const AuthConextProvider = ({ children }) => {
       localStorage.setItem('access_token', access_token);
       localStorage.setItem('expires_in', expires_in);
       localStorage.setItem('role', role);
-      console.log('Expires In from API response (Login):', expires_in);
-      console.log('Expires In from Local Storage (Login):', localStorage.getItem('expires_in'));
 
       // Fetch user details using the access token
       const userResponse = await fetch(`${API_BASE_URL}/api/auth/me`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${access_token}`,
+          Authorization: `Bearer ${access_token}`,
         },
       });
-      console.log('User details API response:', userResponse);
 
       const userData = await userResponse.json();
-      console.log('User details data:', userData);
 
       if (!userResponse.ok) {
         throw new Error(userData.message || 'Failed to fetch user details');
@@ -117,11 +119,9 @@ const AuthConextProvider = ({ children }) => {
       // Store user details
       setUser(userData);
       localStorage.setItem('user', JSON.stringify(userData));
-      setIsAuthenticated(true);
       toast.success('Login successful!');
       return data;
     } catch (error) {
-      console.error('Login error:', error);
       toast.error(error.message || 'Login failed. Please try again.');
       throw error;
     }
@@ -133,77 +133,50 @@ const AuthConextProvider = ({ children }) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
       toast.success('Logout successful!');
     } catch (error) {
-      console.error('Logout error:', error);
     } finally {
       localStorage.removeItem('user');
-      localStorage.removeItem('token');
+      localStorage.removeItem('token'); // Ensure all token related items are removed
       localStorage.removeItem('role');
       localStorage.removeItem('access_token');
       localStorage.removeItem('expires_in');
       setUser(null);
       setToken(null);
       setRole(null);
-      setIsAuthenticated(false);
     }
   };
 
-  const Register = async (userData) => {
+  const Register = async ({ name, email, password }) => {
     try {
-      console.log('Registering user with data:', userData);
+      setLoading(true);
+      // Use exact specified API endpoint
       const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(userData),
+        // Match requested body structure: {name, email, password}
+        body: JSON.stringify({ name, email, password }),
       });
 
-      const data = await response.json();
-      console.log('Registration API response:', data);
+      const data = await response
+        .json()
+        .catch(() => ({ message: 'Server error, please try again later.' }));
 
       if (!response.ok) {
         throw new Error(data.message || 'Registration failed');
       }
 
-      const { access_token, role } = data;
-
-      // Store token and role
-      setToken(access_token);
-      setRole(role);
-      localStorage.setItem('token', access_token);
-      localStorage.setItem('role', role);
-
-      // Fetch user details using the access token
-      const userResponse = await fetch(`${API_BASE_URL}/api/auth/me`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${access_token}`,
-        },
-      });
-      console.log('User details API response (Register):', userResponse);
-
-      const userData = await userResponse.json();
-      console.log('User details data (Register):', userData);
-
-      if (!userResponse.ok) {
-        throw new Error(userData.message || 'Failed to fetch user details after registration');
-      }
-
-      // Store user details
-      setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
-      setIsAuthenticated(true);
-      toast.success('Registration successful!');
+      toast.success('Registration successful! Please log in.');
+      setLoading(false);
       return data;
     } catch (error) {
-      console.error('Registration error in AuthContext:', error);
       toast.error(error.message || 'Registration failed. Please try again.');
+      setLoading(false);
       throw error;
     }
   };
@@ -214,7 +187,7 @@ const AuthConextProvider = ({ children }) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -228,13 +201,12 @@ const AuthConextProvider = ({ children }) => {
       localStorage.setItem('token', data.token);
       return data;
     } catch (error) {
-      console.error('Token refresh error:', error);
       throw error;
     }
   };
 
   return (
-    <AuthConext.Provider
+    <AuthContext.Provider
       value={{
         user,
         setUser,
@@ -249,13 +221,12 @@ const AuthConextProvider = ({ children }) => {
         isAuthenticated,
         loading,
         setLoading,
+        userId: user?.id,
       }}
     >
       {children}
-    </AuthConext.Provider>
+    </AuthContext.Provider>
   );
 };
 
-export { AuthConext, AuthConextProvider };
-
-export default AuthConextProvider;
+export default AuthContextProvider;

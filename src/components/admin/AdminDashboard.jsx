@@ -1,14 +1,26 @@
-import React from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faUsers, faCalendarAlt, faUserFriends, faHourglassHalf, faPlus, 
-  faUser, faShieldAlt
+  faUsers,
+  faCalendarAlt,
+  faUserFriends,
+  faHourglassHalf,
+  faPlus,
+  faUser,
+  faShieldAlt,
 } from '@fortawesome/free-solid-svg-icons';
 import Header from '../common/Header';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchClubs } from '../../app/clubSlice';
+import { fetchEvents } from '../../app/eventSlice';
+import Loader from '../common/UI/Loader';
+import { fetchAllUsers } from '../../app/userSlice';
 
 // Reusable Stat Card Component
 const StatCard = ({ title, value, icon, color }) => (
-  <div className={`bg-white p-6 rounded-lg shadow-lg flex items-center justify-between border-l-4 border-${color}-500`}>
+  <div
+    className={`bg-white p-6 rounded-lg shadow-lg flex items-center justify-between border-l-4 border-${color}-500`}
+  >
     <div>
       <p className="text-sm text-gray-500 font-medium">{title}</p>
       <p className={`text-3xl font-bold text-gray-800`}>{value}</p>
@@ -34,53 +46,102 @@ const QuickActionCard = ({ title, subtitle, icon, onClick, color }) => (
 );
 
 export default function AdminDashboard({ onQuickActionClick }) {
+  const { clubs, loading: clubsLoading } = useSelector((state) => state.clubs);
+  const { users, loading: usersLoading } = useSelector((state) => state.user);
+  const { events, loading: eventsLoading } = useSelector((state) => state.events);
+  const dispatch = useDispatch();
+  const pendingRequests = events.filter((event) => event.status === 'pending');
+
+  const mostActiveClubs = useMemo(() => {
+    if (!clubs.length || !events.length) return [];
+
+    const clubActivity = clubs.map((club) => {
+      const clubEvents = events.filter((event) => event.club_id === club.id);
+      const clubMembers = club.users ? club.users.length : 0;
+      const activityScore = clubEvents.length + clubMembers;
+      return { ...club, activityScore };
+    });
+
+    return clubActivity.sort((a, b) => b.activityScore - a.activityScore);
+  }, [clubs, events]);
+
+  useEffect(() => {
+    dispatch(fetchClubs());
+    dispatch(fetchEvents());
+    dispatch(fetchAllUsers());
+    console.log(clubs);
+  }, []);
+
   return (
     <div className="p-4 sm:p-6 bg-gray-100 min-h-screen">
-      <Header 
-        title="Admin Dashboard" 
+      <Header
+        title="Admin Dashboard"
         subtitle="Welcome! Manage clubs, events, and monitor platform activity."
-        icon={faShieldAlt} 
+        icon={faShieldAlt}
       />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatCard title="Total Clubs" value="24" icon={faUsers} color="blue" />
-        <StatCard title="Total Events" value="156" icon={faCalendarAlt} color="green" />
-        <StatCard title="Active Members" value="1,248" icon={faUserFriends} color="purple" />
-        <StatCard title="Pending Requests" value="17" icon={faHourglassHalf} color="yellow" />
+        {clubsLoading || eventsLoading ? (
+          <div className="col-span-full flex justify-center items-center">
+            <Loader />
+          </div>
+        ) : (
+          <>
+            <StatCard title="Total Clubs" value={clubs.length} icon={faUsers} color="blue" />
+            <StatCard
+              title="Total Events"
+              value={events.length}
+              icon={faCalendarAlt}
+              color="green"
+            />
+            <StatCard
+              title="Active Members"
+              value={users.filter((user) => user.role === 'member' || user.role === 'admin').length}
+              icon={faUserFriends}
+              color="purple"
+            />
+            <StatCard
+              title="Pending Requests"
+              value={pendingRequests.length}
+              icon={faHourglassHalf}
+              color="yellow"
+            />
+          </>
+        )}
       </div>
 
       {/* Quick Actions */}
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">Quick Actions</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <QuickActionCard 
-            title="Manage Clubs" 
-            subtitle="Edit and view clubs" 
-            icon={faUsers} 
+          <QuickActionCard
+            title="Manage Clubs"
+            subtitle="Edit and view clubs"
+            icon={faUsers}
             color="blue"
-            onClick={() => onQuickActionClick('Manage Clubs')} 
+            onClick={() => onQuickActionClick('Manage Clubs')}
           />
-          <QuickActionCard 
-            title="User Management" 
-            subtitle="Handle user roles" 
-            icon={faUserFriends} 
+          <QuickActionCard
+            title="User Management"
+            subtitle="Handle user roles"
+            icon={faUserFriends}
             color="purple"
-            onClick={() => onQuickActionClick('User Management')} 
+            onClick={() => onQuickActionClick('User Management')}
           />
-          <QuickActionCard 
-            title="Manage Events" 
+          <QuickActionCard
+            title="Manage Events"
             subtitle="Create and manage events"
-            icon={faCalendarAlt} 
+            icon={faCalendarAlt}
             color="green"
-            onClick={() => onQuickActionClick('Manage Events')} 
+            onClick={() => onQuickActionClick('Manage Events')}
           />
-          <QuickActionCard 
-            title="Profile" 
+          <QuickActionCard
+            title="Profile"
             subtitle="View your profile"
-            icon={faUser} 
+            icon={faUser}
             color="gray"
-            onClick={() => onQuickActionClick('Profile')} 
+            onClick={() => onQuickActionClick('Profile')}
           />
         </div>
       </div>
@@ -90,74 +151,57 @@ export default function AdminDashboard({ onQuickActionClick }) {
         <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-lg">
           <h2 className="text-xl font-bold text-gray-800 mb-4">Recent Activities</h2>
           <div className="space-y-4">
-            {/* Activity Item */}
-            <div className="flex items-center space-x-4 p-3 rounded-lg hover:bg-gray-50">
-              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                <FontAwesomeIcon icon={faPlus} className="text-green-500" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-900">New club created: <span className="font-bold">"AI & Machine Learning"</span></p>
-                <p className="text-xs text-gray-500">2 hours ago</p>
-              </div>
-            </div>
-             {/* Activity Item */}
-            <div className="flex items-center space-x-4 p-3 rounded-lg hover:bg-gray-50">
-              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                <FontAwesomeIcon icon={faCalendarAlt} className="text-blue-500" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-900">New event added to <span className="font-bold">"Debate Society"</span></p>
-                <p className="text-xs text-gray-500">5 hours ago</p>
-              </div>
-            </div>
-             {/* Activity Item */}
-            <div className="flex items-center space-x-4 p-3 rounded-lg hover:bg-gray-50">
-              <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                <FontAwesomeIcon icon={faUserFriends} className="text-purple-500" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-900"><span className="font-bold">12 new members</span> joined <span className="font-bold">"Photography Club"</span></p>
-                <p className="text-xs text-gray-500">1 day ago</p>
-              </div>
-            </div>
+            {eventsLoading ? (
+              <Loader />
+            ) : (
+              pendingRequests.slice(0, 3).map((event) => (
+                <div
+                  className="flex items-center space-x-4 p-3 rounded-lg hover:bg-gray-50"
+                  key={event.id}
+                >
+                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                    <FontAwesomeIcon icon={faPlus} className="text-green-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">
+                      New event created: <span className="font-bold">{event.title}</span>
+                    </p>
+                    <p className="text-xs text-gray-500">Pending</p>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
           <button className="mt-4 text-blue-600 hover:underline font-semibold">View All</button>
         </div>
         <div className="bg-white p-6 rounded-lg shadow-lg">
           <h2 className="text-xl font-bold text-gray-800 mb-4">Most Active Clubs</h2>
           <div className="space-y-4">
-             {/* Club Item */}
-            <div className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50">
-              <div className="flex items-center space-x-4">
-                <img src="/img/Club1.png" alt="Club 1" className="w-12 h-12 rounded-full" />
-                <div>
-                  <p className="font-bold text-gray-900">Computer Science Club</p>
-                  <p className="text-sm text-gray-500">142 members</p>
+            {clubsLoading ? (
+              <Loader />
+            ) : (
+              mostActiveClubs.slice(0, 3).map((club) => (
+                <div
+                  className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50"
+                  key={club.id}
+                >
+                  <div className="flex items-center space-x-4">
+                    <img src="/img/Club1.png" alt="Club 1" className="w-12 h-12 rounded-full" />
+                    <div>
+                      <p className="font-bold text-gray-900">{club.name}</p>
+                      <p className="text-sm text-gray-500">{club.users_count} members</p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-             {/* Club Item */}
-            <div className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50">
-              <div className="flex items-center space-x-4">
-                <img src="/img/Club2.png" alt="Club 2" className="w-12 h-12 rounded-full" />
-                <div>
-                  <p className="font-bold text-gray-900">Debate Society</p>
-                  <p className="text-sm text-gray-500">88 members</p>
-                </div>
-              </div>
-            </div>
-             {/* Club Item */}
-            <div className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50">
-              <div className="flex items-center space-x-4">
-                <img src="/img/Club3.png" alt="Club 3" className="w-12 h-12 rounded-full" />
-                <div>
-                  <p className="font-bold text-gray-900">Art & Creativity Club</p>
-                  <p className="text-sm text-gray-500">64 members</p>
-                </div>
-              </div>
-            </div>
+              ))
+            )}
           </div>
-          <button className="mt-4 text-blue-600 hover:underline font-semibold">View All</button>
+          <a
+            className="mt-4 text-blue-600 hover:underline font-semibold cursor-pointer"
+            href="/clubs"
+          >
+            View All
+          </a>
         </div>
       </div>
     </div>

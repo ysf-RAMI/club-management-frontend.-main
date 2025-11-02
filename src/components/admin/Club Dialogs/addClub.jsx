@@ -1,62 +1,105 @@
-const AddClubDialog = ({ onClose }) => {
+import { useState } from 'react';
+
+const AddClubDialog = ({ onClose, onAddClub }) => {
+  const [clubData, setClubData] = useState({
+    name: '',
+    description: '',
+    categorie: '',
+    max_members: '',
+    image: null,
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setClubData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
+
+  const handleImageChange = (e) => {
+    setClubData((prevData) => ({
+      ...prevData,
+      image: e.target.files[0],
+    }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onAddClub(clubData);
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="relative p-6 border w-full max-w-lg shadow-lg rounded-lg bg-white">
         <h2 className="text-xl font-bold text-gray-900 mb-6">Add New Club</h2>
-        <form>
+        <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label htmlFor="clubName" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
               Club Name
             </label>
             <input
               type="text"
-              id="clubName"
-              name="clubName"
+              id="name"
+              name="name"
+              value={clubData.name}
+              onChange={handleChange}
               className="mt-1 p-2 border border-gray-300 rounded-lg w-full focus:ring-blue-500 focus:border-blue-500"
+              required
             />
           </div>
           <div className="mb-4">
-            <label htmlFor="clubDescription" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
               Club Description
             </label>
             <textarea
-              id="clubDescription"
-              name="clubDescription"
+              id="description"
+              name="description"
+              value={clubData.description}
+              onChange={handleChange}
               className="mt-1 p-2 border border-gray-300 rounded-lg w-full h-24 focus:ring-blue-500 focus:border-blue-500"
+              required
             ></textarea>
           </div>
           <div className="mb-4">
-            <label htmlFor="clubImage" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="image" className="block text-sm font-medium text-gray-700 mb-1">
               Club Image
             </label>
             <input
               type="file"
-              id="clubImage"
-              name="clubImage"
+              id="image"
+              name="image"
+              onChange={handleImageChange}
               className="mt-1 p-2 border border-gray-300 rounded-lg w-full cursor-pointer"
             />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-              <label htmlFor="clubCategory" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="categorie" className="block text-sm font-medium text-gray-700 mb-1">
                 Club Category
               </label>
               <input
                 type="text"
-                id="clubCategory"
-                name="clubCategory"
+                id="categorie"
+                name="categorie"
+                value={clubData.categorie}
+                onChange={handleChange}
                 className="mt-1 p-2 border border-gray-300 rounded-lg w-full focus:ring-blue-500 focus:border-blue-500"
+                required
               />
             </div>
             <div>
-              <label htmlFor="clubCapacity" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="max_members" className="block text-sm font-medium text-gray-700 mb-1">
                 Club Capacity
               </label>
               <input
                 type="number"
-                id="clubCapacity"
-                name="clubCapacity"
+                id="max_members"
+                name="max_members"
+                value={clubData.max_members}
+                onChange={handleChange}
                 className="mt-1 p-2 border border-gray-300 rounded-lg w-full focus:ring-blue-500 focus:border-blue-500"
+                required
               />
             </div>
           </div>

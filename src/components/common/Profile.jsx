@@ -1,5 +1,5 @@
 import { useState, useContext } from 'react';
-import { AuthConext } from '../../../src/contexts/AuthContext';
+import { AuthContext } from '../../../src/contexts/AuthContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faUser,
@@ -16,7 +16,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 
 export default function Profile() {
-  const { user } = useContext(AuthConext);
+  const { user } = useContext(AuthContext);
   const [activeTab, setActiveTab] = useState('personal');
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({

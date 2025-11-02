@@ -79,7 +79,7 @@ export default function StudentDashboard() {
                         <div key={event.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 border border-gray-200">
                             <div>
                                 <p className="font-semibold text-gray-900">{event.title}</p>
-                                <p className="text-sm text-gray-500">from {event.club}</p>
+                                <p className="text-sm text-gray-500">from {event.club.name}</p>
                             </div>
                             <p className="text-sm font-medium text-blue-600">{event.date}</p>
                         </div>

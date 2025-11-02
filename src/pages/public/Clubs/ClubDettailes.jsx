@@ -1,22 +1,21 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useContext } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchClubById } from '../../../app/clubSlice';
+import { fetchClubById, joinClub } from '../../../app/clubSlice';
 import Loader from '../../../components/common/UI/Loader';
-import {
-  FaUsers,
-  FaAward,
-  FaCalendarAlt,
-  FaClock,
-  FaMapMarkerAlt,
-} from 'react-icons/fa';
+import { FaUsers, FaAward, FaCalendarAlt, FaClock, FaMapMarkerAlt } from 'react-icons/fa';
 import { IoMdCheckmarkCircleOutline } from 'react-icons/io';
+import { toast } from 'react-toastify';
+import { AuthContext } from '../../../contexts/AuthContext';
 
 export default function ClubDettailes() {
   const { id } = useParams();
   const dispatch = useDispatch();
-  const { currentClub, loading, error } = useSelector((state) => state.clubs);
+  const { currentClub, loading, error, joinClubLoading, joinClubError } = useSelector((state) => state.clubs);
+  const { user, isAuthenticated } = useContext(AuthContext);
   const navigate = useNavigate();
+
+  const isClubFull = currentClub?.max_members && currentClub.users?.length >= currentClub.max_members;
 
   useEffect(() => {
     if (id) {
@@ -24,11 +23,8 @@ export default function ClubDettailes() {
     }
   }, [dispatch, id]);
 
-  // Directly use events from currentClub
-  const clubEvents = currentClub?.events || [];
-
   if (loading) {
-    return <Loader />;    
+    return <Loader />;
   }
 
   if (error) {
@@ -54,6 +50,31 @@ export default function ClubDettailes() {
   }
 
   const club = currentClub;
+
+  const handleJoin = async () => {
+    if (!isAuthenticated) {
+      toast.error('You must be logged in to join a club.');
+      navigate('/login');
+      return;
+    }
+    if (currentClub) {
+      const result = await dispatch(joinClub(currentClub.id));
+      if (joinClub.fulfilled.match(result)) {
+        toast.success('Join request sent successfully!');
+        dispatch(fetchClubById(currentClub.id)); 
+      } else if (joinClub.rejected.match(result)) {
+        toast.error(result.payload || 'Failed to send join request.');
+      }
+    }
+  };
+
+  // Directly use events from currentClub
+  const clubEvents = currentClub?.events || [];
+
+  const currentUserMembership = currentClub?.users?.find(member => member.id === user?.id);
+  const isMember = !!currentUserMembership;
+  const isPending = currentUserMembership?.pivot?.status === 'pending';
+  const isApproved = currentUserMembership?.pivot?.status === 'approved';
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -106,7 +127,7 @@ export default function ClubDettailes() {
               <h1 className="text-5xl font-bold">{club.name}</h1>
               <div className="mt-4 flex items-center space-x-4">
                 <span className="flex items-center text-lg">
-                  <FaUsers className="mr-2" /> {club.max_members || 0} Members
+                  <FaUsers className="mr-2" /> {club.users?.length || 0} Members
                 </span>
                 <span className="flex items-center text-lg">
                   <FaCalendarAlt className="mr-2" /> Created{' '}
@@ -120,9 +141,34 @@ export default function ClubDettailes() {
               </p>
             </div>
             <div>
-              <button className="bg-white text-indigo-600 px-6 py-3 rounded-full text-lg font-semibold hover:bg-gray-100 transition duration-300">
-                Join Club
-              </button>
+              {isApproved ? (
+                <p className="text-green-600 text-lg font-semibold">You are a member</p>
+              ) : isPending ? (
+                <button
+                  className="bg-gray-400 text-white px-6 py-3 rounded-full text-lg font-semibold cursor-not-allowed"
+                  disabled
+                >
+                  Pending
+                </button>
+              ) : isClubFull ? (
+                <button
+                  className="bg-red-600 text-white px-6 py-3 rounded-full text-lg font-semibold cursor-not-allowed"
+                  disabled
+                >
+                  Club is Full
+                </button>
+              ) : (
+                <button
+                  onClick={handleJoin}
+                  className={`bg-white text-indigo-600 px-6 py-3 rounded-full text-lg font-semibold transition duration-300 ${joinClubLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}`}
+                  disabled={joinClubLoading}
+                >
+                  {joinClubLoading ? 'Joining...' : 'Join Club'}
+                </button>
+              )}
+              {isPending && (
+                <p className="text-yellow-600 text-sm mt-2 text-center">Your membership request is pending approval.</p>
+              )}
             </div>
           </div>
         </div>
@@ -137,7 +183,7 @@ export default function ClubDettailes() {
               <div className="grid grid-cols-2 gap-4 text-gray-600">
                 <div className="flex items-center space-x-2">
                   <FaUsers className="text-purple-600" />
-                  <span>{club.max_members || 0} Members</span>
+                  <span>{club.users?.length || 0} Members</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <FaCalendarAlt className="text-purple-600" />
@@ -223,7 +269,7 @@ export default function ClubDettailes() {
                 <div className="flex items-center space-x-3">
                   <FaUsers className="text-purple-600" />
                   <div>
-                    <p className="font-semibold text-gray-800">Members</p>
+                    <p className="font-semibold text-gray-800">{club.users?.length || 0} Members</p>
                     <p className="text-sm text-gray-600">{club.max_members || 0} maximum</p>
                   </div>
                 </div>
@@ -254,9 +300,33 @@ export default function ClubDettailes() {
               <p className="text-gray-600 mb-4">
                 Interested in joining {club.name}? Click the button below to request membership.
               </p>
-              <button className="w-full bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition duration-300">
-                Request to Join
-              </button>
+              {isMember ? (
+                <button
+                  className="w-full bg-gray-400 text-white px-4 py-2 rounded-lg cursor-not-allowed"
+                  disabled
+                >
+                  Already a Member
+                </button>
+              ) : isPending ? (
+                <button
+                  className="w-full bg-gray-400 text-white px-4 py-2 rounded-lg cursor-not-allowed"
+                  disabled
+                >
+                  Pending Approval
+                </button>
+              ) : (
+                <button
+                  onClick={handleJoin}
+                  className={`w-full bg-indigo-600 text-white px-4 py-2 rounded-lg transition duration-300 ${joinClubLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-indigo-700'}`}
+                  disabled={joinClubLoading}
+                >
+                  {joinClubLoading ? 'Joining...' : 'Request to Join'}
+                </button>
+              )}
+              {isPending && !isMember && (
+                <p className="text-yellow-600 text-sm mt-2 text-center">Your membership request is pending approval.</p>
+              )}
+              {joinClubError && <p className="text-red-500 text-sm mt-2">Error: {joinClubError}</p>}
             </div>
           </div>
         </div>

@@ -1,9 +1,9 @@
 import { useContext } from 'react';
-import { AuthConext } from '../../../contexts/AuthContext';
+import { useAuth } from '../../../contexts/AuthContext';
 
 export default function DashHeader() {
-  const { user, Logout } = useContext(AuthConext);
-
+  const { user, Logout } = useAuth();
+  
   return (
     <header className="bg-white border-b-2 border-gray-100 flex justify-between items-center max-w-7xl mx-auto">
       <nav aria-label="Global" className=" flex max-w-7xl items-center p-6 lg:px-8">

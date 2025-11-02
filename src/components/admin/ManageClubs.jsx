@@ -2,51 +2,27 @@ import { faEdit, faPlus, faSearch, faTrash, faUsers, faUsersCog, faCalendarAlt }
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import AddClubDialog from './Club Dialogs/addClub';
 import DeleteClubDialog from './Club Dialogs/deleteClub';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import EditClubDialog from './Club Dialogs/editClub';
 import Header from '../common/Header';
-
-// Dummy data for clubs
-const initialClubs = [
-  {
-    id: 1,
-    name: 'Photography Club',
-    description: 'Capture moments, create memories, and explore the art of photography.',
-    image: '/img/Club1.png',
-    members: 85,
-    events: 12,
-    status: 'Active',
-    created: 'Jan 15, 2024',
-  },
-  {
-    id: 2,
-    name: 'Debate Society',
-    description: 'Engage in intellectual discourse and sharpen your public speaking skills.',
-    image: '/img/Club2.png',
-    members: 45,
-    events: 8,
-    status: 'Active',
-    created: 'Feb 01, 2024',
-  },
-  {
-    id: 3,
-    name: 'Art & Creativity Club',
-    description: 'A place for artists to collaborate, create, and showcase their work.',
-    image: '/img/Club3.png',
-    members: 60,
-    events: 5,
-    status: 'Inactive',
-    created: 'Mar 10, 2024',
-  },
-];
+import { useDispatch, useSelector } from 'react-redux';
+import { createClub, deleteClub, fetchClubs, updateClub } from '../../app/clubSlice';
+import { API_BASE_URL } from '../../config/api';
+import Loader from '../common/UI/Loader';
 
 export default function ManageClubs() {
-  const [clubs] = useState(initialClubs);
+  const dispatch = useDispatch();
+  const { clubs, loading } = useSelector((state) => state.clubs);
+
   const [isAddClubModalOpen, setIsAddClubModalOpen] = useState(false);
   const [isDeleteClubModalOpen, setIsDeleteClubModalOpen] = useState(false);
   const [isEditClubModalOpen, setIsEditClubModalOpen] = useState(false);
   const [clubToDelete, setClubToDelete] = useState(null);
   const [clubToEdit, setClubToEdit] = useState(null);
+
+  useEffect(() => {
+    dispatch(fetchClubs());
+  }, [dispatch]);
 
   const openAddClubModal = () => setIsAddClubModalOpen(true);
   const closeAddClubModal = () => setIsAddClubModalOpen(false);
@@ -70,24 +46,46 @@ export default function ManageClubs() {
   };
 
   const handleDeleteConfirm = () => {
-    console.log(`Deleting club: ${clubToDelete?.name}`);
-    closeDeleteClubModal();
+    if (clubToDelete) {
+      dispatch(deleteClub(clubToDelete.id));
+      closeDeleteClubModal();
+    }
   };
 
-  const handleEditConfirm = (updatedClub) => {
-    console.log('Updating club:', updatedClub);
-    closeEditClubModal();
+  const handleEditConfirm = (updatedClubData) => {
+    if (clubToEdit) {
+      const formData = new FormData();
+      for (const key in updatedClubData) {
+        formData.append(key, updatedClubData[key]);
+      }
+      // Laravel expects _method=PUT for PUT requests with FormData
+      formData.append('_method', 'PUT');
+      dispatch(updateClub({ clubId: clubToEdit.id, clubData: formData }));
+      closeEditClubModal();
+    }
+  };
+
+  const handleAddClub = (newClubData) => {
+    const formData = new FormData();
+    for (const key in newClubData) {
+      formData.append(key, newClubData[key]);
+    }
+    dispatch(createClub(formData));
+    closeAddClubModal();
   };
 
   const getStatusColor = (status) => {
-    return status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+    // The API data doesn't seem to have a 'status' field for the club itself.
+    // If a club status needs to be displayed, we need to define how it's derived.
+    // For now, returning a default style or removing the status display.
+    return 'bg-gray-200 text-gray-800'; // Default style
   };
 
   return (
     <div className="p-4 bg-gray-100 text-gray-900 min-h-screen">
       <Header title="Manage Clubs" subtitle="Create, edit, and manage all clubs." icon={faUsers} />
       
-      {isAddClubModalOpen && <AddClubDialog onClose={closeAddClubModal} />}
+      {isAddClubModalOpen && <AddClubDialog onClose={closeAddClubModal} onAddClub={handleAddClub} />} 
       {isDeleteClubModalOpen && (
         <DeleteClubDialog
           open={isDeleteClubModalOpen}
@@ -123,52 +121,54 @@ export default function ManageClubs() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {clubs.map((club) => (
-          <div key={club.id} className="bg-white rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 flex flex-col">
-            <img className="w-full h-48 object-cover" src={club.image} alt={club.name} />
-            <div className="p-6 flex flex-col flex-grow">
-              <h3 className="text-xl font-bold text-gray-900 mb-2">{club.name}</h3>
-              <p className="text-gray-600 text-sm mb-4 flex-grow">{club.description}</p>
-              
-              <div className="flex justify-between items-center text-sm text-gray-700 mb-4 border-t border-b border-gray-200 py-3">
-                <div className="flex items-center gap-2">
-                  <FontAwesomeIcon icon={faUsersCog} className="text-gray-400"/>
-                  <span>{club.members} Members</span>
+      {loading ? (
+        <Loader />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {clubs.map((club) => (
+            <div key={club.id} className="bg-white rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 flex flex-col">
+              <img className="w-full h-48 object-cover" src={club.image ? `${API_BASE_URL}/${club.image}` : '/img/Club1.png'} alt={club.name} />
+              <div className="p-6 flex flex-col flex-grow">
+                <h3 className="text-xl font-bold text-gray-900 mb-2">{club.name}</h3>
+                <p className="text-gray-600 text-sm mb-4 flex-grow">{club.description}</p>
+                
+                <div className="flex justify-between items-center text-sm text-gray-700 mb-4 border-t border-b border-gray-200 py-3">
+                  <div className="flex items-center gap-2">
+                    <FontAwesomeIcon icon={faUsersCog} className="text-gray-400"/>
+                    <span>{club.users_count} Members</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <FontAwesomeIcon icon={faCalendarAlt} className="text-gray-400" />
+                    <span>{club.events?.length || 0} Events</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <FontAwesomeIcon icon={faCalendarAlt} className="text-gray-400" />
-                  <span>{club.events} Events</span>
-                </div>
-              </div>
 
-              <div className="flex justify-between items-center mb-6">
-                <span className={`px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(club.status)}`}>
-                  {club.status}
-                </span>
-                 <span className="text-xs text-gray-500">Created: {club.created}</span>
-              </div>
-              
-              <div className="flex justify-end space-x-3 mt-auto">
-                <button
-                  onClick={() => openEditClubModal(club)}
-                  className="text-blue-500 hover:text-blue-600 transition-colors duration-200 p-2 rounded-full bg-gray-100 hover:bg-gray-200 cursor-pointer"
-                  aria-label={`Edit ${club.name}`}
-                >
-                  <FontAwesomeIcon icon={faEdit} className="text-lg" />
-                </button>
-                <button
-                  onClick={() => openDeleteClubModal(club)}
-                  className="text-red-500 hover:text-red-600 transition-colors duration-200 p-2 rounded-full bg-gray-100 hover:bg-gray-200 cursor-pointer"
-                  aria-label={`Delete ${club.name}`}
-                >
-                  <FontAwesomeIcon icon={faTrash} className="text-lg" />
-                </button>
+                {/* Removed club status display as it's not in the API data */}
+                <div className="flex justify-between items-center mb-6">
+                  <span className="text-xs text-gray-500">Created: {new Date(club.created_at).toLocaleDateString()}</span>
+                </div>
+                
+                <div className="flex justify-end space-x-3 mt-auto">
+                  <button
+                    onClick={() => openEditClubModal(club)}
+                    className="text-blue-500 hover:text-blue-600 transition-colors duration-200 p-2 rounded-full bg-gray-100 hover:bg-gray-200 cursor-pointer"
+                    aria-label={`Edit ${club.name}`}
+                  >
+                    <FontAwesomeIcon icon={faEdit} className="text-lg" />
+                  </button>
+                  <button
+                    onClick={() => openDeleteClubModal(club)}
+                    className="text-red-500 hover:text-red-600 transition-colors duration-200 p-2 rounded-full bg-gray-100 hover:bg-gray-200 cursor-pointer"
+                    aria-label={`Delete ${club.name}`}
+                  >
+                    <FontAwesomeIcon icon={faTrash} className="text-lg" />
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
