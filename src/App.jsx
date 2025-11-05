@@ -19,6 +19,9 @@ import Student from './components/student/Student';
 import Member from './components/member/Member';
 import Admin from './components/admin/Admin';
 import AdMember from './components/admin-member/AdMember';
+import ClubManagment from "./components/admin-member/ClubManagment";
+import EventManagement from './components/admin-member/EventManagement';
+import ClubFilesManagment from './components/admin-member/ClubFilesManagment';
 
 export default function App() {
   return (
@@ -71,7 +74,11 @@ export default function App() {
                     <AdMember />
                   </ProtectedRoutes>
                 }
-              />
+              >
+                <Route path="club-management" element={<ClubManagment />} />
+                <Route path="event-management" element={<EventManagement />} />
+                <Route path="club-files-management" element={<ClubFilesManagment />} />
+              </Route>
             </Route>
           </Routes>
         </div>

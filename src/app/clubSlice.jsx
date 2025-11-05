@@ -16,21 +16,26 @@ export const fetchClubs = createAsyncThunk('clubs/fetchClubs', async () => {
   }
 });
 
-export const fetchClubById = createAsyncThunk('clubs/fetchClubById', async (clubId, { rejectWithValue }) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/clubs/${clubId}`);
-    if (response.status === 404) {
-      return rejectWithValue('Club Not Found');
+export const fetchClubById = createAsyncThunk(
+  'clubs/fetchClubById',
+  async (clubId, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/clubs/${clubId}`);
+      if (response.status === 404) {
+        return rejectWithValue('Club Not Found');
+      }
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.message);
     }
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    return rejectWithValue(error.message);
-  }
-});
+  },
+);
+
+
 
 export const joinClub = createAsyncThunk('clubs/joinClub', async (club_id, { rejectWithValue }) => {
   const token = localStorage.getItem('access_token');
@@ -56,6 +61,37 @@ export const joinClub = createAsyncThunk('clubs/joinClub', async (club_id, { rej
     return rejectWithValue(error.message);
   }
 });
+
+export const approveJoinClub = createAsyncThunk(
+  'clubs/approveJoinClub',
+  async ({ clubId, userId, status }, { rejectWithValue }) => {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      return rejectWithValue('You must be logged in to approve a member.');
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/clubs/${clubId}/approve-student`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ user_id: userId, status }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        return rejectWithValue(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  },
+);
+
+
 
 export const createClub = createAsyncThunk(
   'clubs/createClub',
@@ -148,8 +184,6 @@ export const deleteClub = createAsyncThunk(
     }
   },
 );
-
-
 
 const applyFilters = (state) => {
   let filtered = [...state.clubs];
@@ -381,6 +415,41 @@ const clubSlice = createSlice({
         state.loading = false;
         state.error = action.payload || action.error.message;
         toast.error(action.payload || 'Failed to delete club.');
+      });
+
+    builder
+      .addCase(approveJoinClub.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(approveJoinClub.fulfilled, (state, action) => {
+        state.loading = false;
+        // Optionally, update the currentClub or clubs list if the join was successful
+        // For example, if the API returns the updated club with new member count
+        if (state.currentClub && state.currentClub._id === action.payload._id) {
+          state.currentClub = action.payload;
+        }
+        // You might also want to update the clubs array if it's displayed elsewhere
+        const index = state.clubs.findIndex((club) => club._id === action.payload._id);
+        if (index !== -1) {
+          state.clubs[index] = action.payload;
+        }
+        const filteredIndex = state.filteredClubs.findIndex(
+          (club) => club._id === action.payload._id,
+        );
+        if (filteredIndex !== -1) {
+          state.filteredClubs[filteredIndex] = action.payload;
+        }
+        toast.success('Member approved successfully!');
+        state.loading = false;
+        // Re-fetch clubs to ensure the dashboard updates with the latest data
+        // This is a more robust way to ensure UI consistency after approval/rejection
+        // The fetchClubs thunk will be dispatched from the component after this action is handled.
+      })
+      .addCase(approveJoinClub.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || action.error.message;
+        toast.error(action.payload || 'Failed to approve member.');
       });
   },
 });

@@ -1,6 +1,6 @@
 
 
-import { useState } from "react"
+import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { 
     faFolder, 
@@ -23,497 +23,506 @@ import {
     faPlus
 } from "@fortawesome/free-solid-svg-icons"
 
-export default function ClubFilesManagement() {
-    const [selectedClub, setSelectedClub] = useState('')
-    const [searchTerm, setSearchTerm] = useState('')
-    const [showGallery, setShowGallery] = useState(true)
-    const [showUploadModal, setShowUploadModal] = useState(false)
-    const [lightboxImage, setLightboxImage] = useState(null)
-    const [showDeleteModal, setShowDeleteModal] = useState(false)
-    const [selectedFile, setSelectedFile] = useState(null)
+export default function ClubFilesManagment() {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterCategory, setFilterCategory] = useState('All');
+  const [showAddClubModal, setShowAddClubModal] = useState(false);
+  const [showEditClubModal, setShowEditClubModal] = useState(false);
+  const [selectedClub, setSelectedClub] = useState(null);
+  const [showAddFileModal, setShowAddFileModal] = useState(false);
+  const [selectedFileClubId, setSelectedFileClubId] = useState(null);
+  const [adminMemberClubId, setAdminMemberClubId] = useState(null); // Placeholder for admin-member's club ID
 
-    // Sample clubs data
-    const clubs = [
-        { id: 1, name: "Robotics Club", members: 45, files: 23 },
-        { id: 2, name: "Computer Science Club", members: 78, files: 34 },
-        { id: 3, name: "Design Club", members: 32, files: 18 },
-        { id: 4, name: "Business Club", members: 56, files: 28 }
-    ]
+  useEffect(() => {
+    // In a real application, you would fetch the admin-member's club ID here
+    // For now, we'll hardcode it for demonstration purposes.
+    // This club ID should come from the authenticated user's data.
+    setAdminMemberClubId(1); // Assuming admin-member is admin of club with ID 1
+  }, []);
 
-    // Sample gallery data
-    const galleryImages = [
-        {
-            id: 1,
-            url: "/img/Club1.png",
-            title: "Robotics Workshop 2024",
-            date: "2024-01-15",
-            uploadedBy: "John Doe",
-            clubId: 1,
-            size: "2.4 MB"
-        },
-        {
-            id: 2,
-            url: "/img/Club2.png",
-            title: "Team Meeting",
-            date: "2024-01-10",
-            uploadedBy: "Jane Smith",
-            clubId: 2,
-            size: "1.8 MB"
-        },
-        {
-            id: 3,
-            url: "/img/Club3.png",
-            title: "Project Presentation",
-            date: "2024-01-08",
-            uploadedBy: "Mike Johnson",
-            clubId: 1,
-            size: "3.2 MB"
-        },
-        {
-            id: 4,
-            url: "/img/Club1.png",
-            title: "Club Social Event",
-            date: "2024-01-05",
-            uploadedBy: "Sarah Wilson",
-            clubId: 3,
-            size: "2.1 MB"
-        },
-        {
-            id: 5,
-            url: "/img/Club2.png",
-            title: "Workshop Materials",
-            date: "2024-01-03",
-            uploadedBy: "David Brown",
-            clubId: 2,
-            size: "1.5 MB"
-        },
-        {
-            id: 6,
-            url: "/img/Club3.png",
-            title: "Award Ceremony",
-            date: "2023-12-28",
-            uploadedBy: "Lisa Davis",
-            clubId: 4,
-            size: "2.8 MB"
-        }
-    ]
+  // Sample data for clubs, gallery images, and documents
+  const allClubs = [
+    {
+      id: 1,
+      name: "Photography Club",
+      category: "Arts",
+      description: "A club for photography enthusiasts.",
+      image: "/img/Club1.png",
+      gallery: [
+        { id: 101, url: "https://via.placeholder.com/150/FF0000/FFFFFF?text=Photo1", type: "image", name: "Sunset.jpg" },
+        { id: 102, url: "https://via.placeholder.com/150/0000FF/FFFFFF?text=Photo2", type: "image", name: "Landscape.png" },
+      ],
+      documents: [
+        { id: 201, url: "https://www.africau.edu/images/default/sample.pdf", type: "pdf", name: "Club_Rules.pdf" },
+        { id: 202, url: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", type: "pdf", name: "Membership_Form.pdf" },
+      ],
+    },
+    {
+      id: 2,
+      name: "Robotics Club",
+      category: "Technology",
+      description: "Innovating the future with robotics.",
+      image: "/img/Club2.png",
+      gallery: [
+        { id: 103, url: "https://via.placeholder.com/150/FFFF00/000000?text=Robot1", type: "image", name: "Robot_Design.jpg" },
+        { id: 104, url: "https://via.placeholder.com/150/00FFFF/000000?text=Robot2", type: "image", name: "Competition.png" },
+      ],
+      documents: [
+        { id: 203, url: "https://www.africau.edu/images/default/sample.pdf", type: "pdf", name: "Robot_Specs.pdf" },
+      ],
+    },
+    {
+      id: 3,
+      name: "Chess Club",
+      category: "Strategy",
+      description: "Where minds meet and strategies unfold.",
+      image: "/img/Club3.png",
+      gallery: [
+        { id: 105, url: "https://via.placeholder.com/150/FF00FF/FFFFFF?text=Chess1", type: "image", name: "Tournament.jpg" },
+      ],
+      documents: [
+        { id: 204, url: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", type: "pdf", name: "Chess_Rules.pdf" },
+      ],
+    },
+  ];
 
-    // Sample documents data
-    const documents = [
-        {
-            id: 1,
-            name: "Club Constitution.pdf",
-            type: "pdf",
-            size: "2.4 MB",
-            date: "2024-01-15",
-            uploadedBy: "Admin",
-            clubId: 1
-        },
-        {
-            id: 2,
-            name: "Meeting Minutes.docx",
-            type: "word",
-            size: "156 KB",
-            date: "2024-01-10",
-            uploadedBy: "Secretary",
-            clubId: 2
-        },
-        {
-            id: 3,
-            name: "Budget Report.xlsx",
-            type: "excel",
-            size: "89 KB",
-            date: "2024-01-08",
-            uploadedBy: "Treasurer",
-            clubId: 1
-        },
-        {
-            id: 4,
-            name: "Event Planning.pptx",
-            type: "powerpoint",
-            size: "3.2 MB",
-            date: "2024-01-05",
-            uploadedBy: "Event Coordinator",
-            clubId: 3
-        },
-        {
-            id: 5,
-            name: "Member Guidelines.txt",
-            type: "text",
-            size: "45 KB",
-            date: "2024-01-03",
-            uploadedBy: "Admin",
-            clubId: 4
-        }
-    ]
+  const clubs = adminMemberClubId ? allClubs.filter(club => club.id === adminMemberClubId) : [];
 
-    const getFileIcon = (type) => {
-        switch (type) {
-            case 'pdf': return faFilePdf
-            case 'word': return faFileWord
-            case 'excel': return faFileExcel
-            case 'powerpoint': return faFilePowerpoint
-            case 'text': return faFileAlt
-            default: return faFileAlt
-        }
+  const filteredClubs = clubs.filter(club =>
+    club.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+    (filterCategory === 'All' || club.category === filterCategory)
+  );
+
+  const getFileIcon = (fileType) => {
+    switch (fileType) {
+      case 'pdf':
+        return faFilePdf;
+      case 'image':
+        return faImage;
+      default:
+        return faFile;
     }
+  };
 
-    const getFileIconColor = (type) => {
-        switch (type) {
-            case 'pdf': return 'text-red-500'
-            case 'word': return 'text-blue-500'
-            case 'excel': return 'text-green-500'
-            case 'powerpoint': return 'text-orange-500'
-            case 'text': return 'text-gray-500'
-            default: return 'text-gray-500'
-        }
+  const handleAddClub = (newClub) => {
+    console.log('Adding club:', newClub);
+    // In a real app, you'd send this to your backend API
+    setShowAddClubModal(false);
+  };
+
+  const handleEditClub = (updatedClub) => {
+    console.log('Editing club:', updatedClub);
+    // In a real app, you'd send this to your backend API
+    setShowEditClubModal(false);
+    setSelectedClub(null);
+  };
+
+  const handleDeleteClub = (clubId) => {
+    if (window.confirm('Are you sure you want to delete this club?')) {
+      console.log('Deleting club:', clubId);
+      // In a real app, you'd send this to your backend API
     }
+  };
 
-    // Filter data based on selected club and search term
-    const filteredImages = galleryImages.filter(img => 
-        (selectedClub === '' || img.clubId.toString() === selectedClub) &&
-        img.title.toLowerCase().includes(searchTerm.toLowerCase())
-    )
+  const handleAddFile = (newFile) => {
+    console.log('Adding file:', newFile);
+    // In a real app, you'd send this to your backend API
+    setShowAddFileModal(false);
+    setSelectedFileClubId(null);
+  };
 
-    const filteredDocuments = documents.filter(doc =>
-        (selectedClub === '' || doc.clubId.toString() === selectedClub) &&
-        doc.name.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-
-    const handleDeleteFile = (file) => {
-        setSelectedFile(file)
-        setShowDeleteModal(true)
+  const handleDeleteFile = (clubId, fileId) => {
+    if (window.confirm('Are you sure you want to delete this file?')) {
+      console.log(`Deleting file ${fileId} from club ${clubId}`);
+      // In a real app, you'd send this to your backend API
     }
+  };
 
-    const confirmDelete = () => {
-        console.log('Deleting file:', selectedFile)
-        setShowDeleteModal(false)
-        setSelectedFile(null)
-    }
-
-    const LightboxModal = ({ image, onClose }) => (
-        <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4">
-            <div className="relative max-w-4xl max-h-full">
-                <button
-                    onClick={onClose}
-                    className="absolute top-4 right-4 text-white text-2xl hover:text-gray-300 z-10"
-                >
-                    <FontAwesomeIcon icon={faTimes} />
-                </button>
-                <img
-                    src={image.url}
-                    alt={image.title}
-                    className="max-w-full max-h-full object-contain rounded-lg"
-                />
-                <div className="absolute bottom-4 left-4 right-4 bg-black bg-opacity-50 text-white p-4 rounded-lg">
-                    <h3 className="text-lg font-bold">{image.title}</h3>
-                    <p className="text-sm text-gray-300">
-                        Uploaded by {image.uploadedBy} on {image.date} • {image.size}
-                    </p>
-                </div>
+  return (
+    <main className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="mb-8">
+        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-8 rounded-xl shadow-lg">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">Club & File Management</h1>
+              <p className="text-purple-100 text-lg">Manage clubs, their gallery, and documents</p>
             </div>
+            <FontAwesomeIcon icon={faFolderOpen} className="text-white text-6xl opacity-30" />
+          </div>
         </div>
-    )
+      </header>
 
-    return (
-        <main className="min-h-screen bg-gray-50">
-            {/* Header */}
-            <header className="mb-8">
-                <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-8 rounded-xl shadow-lg">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h1 className="text-3xl font-bold mb-2">Club Files Management</h1>
-                            <p className="text-purple-100 text-lg">Manage and organize club files and media</p>
-                        </div>
-                        <FontAwesomeIcon icon={faFolder} className="text-white text-6xl opacity-30" />
-                    </div>
-                </div>
-            </header>
+      {/* Search and Filter Controls */}
+      <div className="bg-white p-6 rounded-xl shadow-md mb-8">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div className="flex-1 max-w-md">
+            <div className="relative">
+              <FontAwesomeIcon 
+                icon={faSearch} 
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" 
+              />
+              <input 
+                type="text" 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
+                placeholder="Search clubs..." 
+              />
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <div className="flex items-center">
+              <FontAwesomeIcon icon={faFilter} className="text-gray-500 mr-2" />
+              <select 
+                value={filterCategory}
+                onChange={(e) => setFilterCategory(e.target.value)}
+                className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              >
+                <option value="All">All Categories</option>
+                <option value="Arts">Arts</option>
+                <option value="Technology">Technology</option>
+                <option value="Strategy">Strategy</option>
+              </select>
+            </div>
+            
+            {adminMemberClubId && (
+              <button 
+                onClick={() => setShowAddClubModal(true)}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+              >
+                <FontAwesomeIcon icon={faPlus} className="mr-2" />
+                Add Club
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
 
-            {/* Controls */}
-            <div className="bg-white p-6 rounded-xl shadow-md mb-8">
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                        <label htmlFor="select-club" className="text-gray-700 font-medium min-w-max">
-                            <FontAwesomeIcon icon={faFolder} className="text-purple-600 mr-1" /> Select Club:
-                        </label>
-                        <select
-                            id="select-club"
-                            className="w-full sm:w-64 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-200 bg-white text-gray-700 transition"
-                            value={selectedClub}
-                            onChange={e => setSelectedClub(e.target.value)}
-                        >
-                            <option value="">All Clubs</option>
-                            {clubs.map(club => (
-                                <option key={club.id} value={club.id}>{club.name}</option>
-                            ))}
-                        </select>
-                    </div>
-                    
-                    <div className="flex-1 max-w-md">
-                        <div className="relative">
-                            <FontAwesomeIcon 
-                                icon={faSearch} 
-                                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" 
-                            />
-                            <input 
-                                type="text" 
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
-                                placeholder="Search files and images..." 
-                            />
-                        </div>
-                    </div>
-                    
+      {/* Clubs List */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredClubs.map(club => (
+          <div key={club.id} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+            <img 
+              src={club.image} 
+              alt={club.name}
+              className="w-full h-48 object-cover"
+            />
+            <div className="p-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-2">{club.name}</h3>
+              <p className="text-gray-600 mb-4 text-sm line-clamp-2">{club.description}</p>
+              
+              <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+                <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">{club.category}</span>
+                <div className="flex space-x-2">
+                  {adminMemberClubId && (
                     <button 
-                        onClick={() => setShowUploadModal(true)}
-                        className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+                      onClick={() => {
+                        setSelectedClub(club);
+                        setShowEditClubModal(true);
+                      }}
+                      className="text-indigo-600 hover:text-indigo-900"
                     >
-                        <FontAwesomeIcon icon={faUpload} className="mr-2" />
-                        Upload Files
+                      <FontAwesomeIcon icon={faEdit} />
                     </button>
+                  )}
+                  {adminMemberClubId && (
+                    <button 
+                      onClick={() => handleDeleteClub(club.id)}
+                      className="text-red-600 hover:text-red-900"
+                    >
+                      <FontAwesomeIcon icon={faTrash} />
+                    </button>
+                  )}
                 </div>
+              </div>
+
+              {/* Gallery */}
+              <h4 className="text-lg font-semibold text-gray-800 mb-3">Gallery</h4>
+              {club.gallery.length > 0 ? (
+                <div className="grid grid-cols-3 gap-2 mb-4">
+                  {club.gallery.map(file => (
+                    <div key={file.id} className="relative group">
+                      <img src={file.url} alt={file.name} className="w-full h-20 object-cover rounded-lg" />
+                      {adminMemberClubId && (
+                        <button 
+                          onClick={() => handleDeleteFile(club.id, file.id)}
+                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <FontAwesomeIcon icon={faTimes} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-sm mb-4">No gallery images.</p>
+              )}
+              {adminMemberClubId && (
+                <button 
+                  onClick={() => {
+                    setSelectedFileClubId(club.id);
+                    setShowAddFileModal(true);
+                  }}
+                  className="w-full bg-blue-500 hover:bg-blue-600 text-white text-sm px-3 py-2 rounded-lg mb-4 transition-colors"
+                >
+                  <FontAwesomeIcon icon={faPlus} className="mr-2" />
+                  Add Gallery Image
+                </button>
+              )}
+
+              {/* Documents */}
+              <h4 className="text-lg font-semibold text-gray-800 mb-3">Documents</h4>
+              {club.documents.length > 0 ? (
+                <div className="space-y-2">
+                  {club.documents.map(file => (
+                    <div key={file.id} className="flex items-center justify-between bg-gray-100 p-3 rounded-lg">
+                      <a href={file.url} target="_blank" rel="noopener noreferrer" className="flex items-center text-blue-600 hover:underline">
+                        <FontAwesomeIcon icon={getFileIcon(file.type)} className="mr-2" />
+                        {file.name}
+                      </a>
+                      {adminMemberClubId && (
+                        <button 
+                          onClick={() => handleDeleteFile(club.id, file.id)}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          <FontAwesomeIcon icon={faTrash} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-sm">No documents.</p>
+              )}
+              {adminMemberClubId && (
+                <button 
+                  onClick={() => {
+                    setSelectedFileClubId(club.id);
+                    setShowAddFileModal(true);
+                  }}
+                  className="w-full bg-blue-500 hover:bg-blue-600 text-white text-sm px-3 py-2 rounded-lg mt-4 transition-colors"
+                >
+                  <FontAwesomeIcon icon={faPlus} className="mr-2" />
+                  Add Document
+                </button>
+              )}
             </div>
+          </div>
+        ))}
+      </div>
 
-            {/* Files Content */}
-            <div className="bg-white rounded-xl shadow-md p-6">
-                <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-2xl font-bold text-gray-800">
-                        {selectedClub ? 
-                            `${clubs.find(c => c.id.toString() === selectedClub)?.name} Files` : 
-                            'All Club Files'
-                        }
-                    </h2>
-                    <div className="text-sm text-gray-500">
-                        {filteredImages.length} images • {filteredDocuments.length} documents
-                    </div>
-                </div>
-
-                {/* Gallery/Documents Toggle */}
-                <div className="flex items-center space-x-4 mb-8">
-                    <button
-                        onClick={() => setShowGallery(true)}
-                        className={`flex items-center px-5 py-2 rounded-lg font-medium transition 
-                            ${showGallery ? "bg-purple-600 text-white shadow" : "bg-gray-100 text-gray-700 hover:bg-purple-100"}`}
-                    >
-                        <FontAwesomeIcon icon={faImage} className="mr-2" />
-                        Gallery ({filteredImages.length})
-                    </button>
-                    <button
-                        onClick={() => setShowGallery(false)}
-                        className={`flex items-center px-5 py-2 rounded-lg font-medium transition 
-                            ${!showGallery ? "bg-purple-600 text-white shadow" : "bg-gray-100 text-gray-700 hover:bg-purple-100"}`}
-                    >
-                        <FontAwesomeIcon icon={faFileAlt} className="mr-2" />
-                        Documents ({filteredDocuments.length})
-                    </button>
-                </div>
-
-                {/* Gallery Section */}
-                {showGallery && (
-                    <div>
-                        <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center">
-                            <FontAwesomeIcon icon={faImage} className="mr-2 text-purple-500" />
-                            Images ({filteredImages.length})
-                        </h3>
-                        {filteredImages.length > 0 ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                                {filteredImages.map(image => (
-                                    <div 
-                                        key={image.id}
-                                        className="bg-gray-50 rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-300 border border-gray-200"
-                                    >
-                                        <div className="relative">
-                                            <img 
-                                                src={image.url} 
-                                                alt={image.title}
-                                                className="w-full h-40 object-cover cursor-pointer"
-                                                onClick={() => setLightboxImage(image)}
-                                            />
-                                            <div className="absolute top-2 right-2">
-                                                <span className="bg-purple-500 text-white text-xs px-2 py-1 rounded">
-                                                    {clubs.find(c => c.id === image.clubId)?.name}
-                                                </span>
-                                            </div>
-                                            <div className="absolute top-2 left-2">
-                                                <button 
-                                                    onClick={() => handleDeleteFile(image)}
-                                                    className="bg-red-500 text-white p-1 rounded hover:bg-red-600"
-                                                >
-                                                    <FontAwesomeIcon icon={faTrash} className="text-xs" />
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <div className="p-3">
-                                            <h4 className="font-medium text-gray-800 mb-1 text-sm line-clamp-2">{image.title}</h4>
-                                            <div className="flex items-center text-xs text-gray-500 mb-1">
-                                                <FontAwesomeIcon icon={faUser} className="mr-1" />
-                                                {image.uploadedBy}
-                                            </div>
-                                            <div className="flex items-center text-xs text-gray-500 mb-1">
-                                                <FontAwesomeIcon icon={faCalendarAlt} className="mr-1" />
-                                                {image.date}
-                                            </div>
-                                            <div className="flex items-center text-xs text-gray-500">
-                                                <FontAwesomeIcon icon={faDownload} className="mr-1" />
-                                                {image.size}
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="text-center py-12">
-                                <FontAwesomeIcon icon={faImage} className="text-gray-300 text-6xl mb-4" />
-                                <h3 className="text-xl font-medium text-gray-500 mb-2">No images found</h3>
-                                <p className="text-gray-400">Try adjusting your search or filters</p>
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {/* Documents Section */}
-                {!showGallery && (
-                    <div>
-                        <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center">
-                            <FontAwesomeIcon icon={faFileAlt} className="mr-2 text-purple-500" />
-                            Documents ({filteredDocuments.length})
-                        </h3>
-                        {filteredDocuments.length > 0 ? (
-                            <div className="space-y-3">
-                                {filteredDocuments.map(doc => (
-                                    <div key={doc.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center space-x-4">
-                                                <div className={`p-3 rounded-lg ${getFileIconColor(doc.type)} bg-white`}>
-                                                    <FontAwesomeIcon icon={getFileIcon(doc.type)} className="text-xl" />
-                                                </div>
-                                                <div>
-                                                    <h4 className="font-semibold text-gray-800">{doc.name}</h4>
-                                                    <div className="flex items-center space-x-3 text-sm text-gray-500 mt-1">
-                                                        <span>{doc.size}</span>
-                                                        <span>•</span>
-                                                        <span>{clubs.find(c => c.id === doc.clubId)?.name}</span>
-                                                        <span>•</span>
-                                                        <span>Uploaded by {doc.uploadedBy}</span>
-                                                        <span>•</span>
-                                                        <span>{doc.date}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center space-x-2">
-                                                <button className="text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-200">
-                                                    <FontAwesomeIcon icon={faEye} />
-                                                </button>
-                                                <button className="text-purple-500 hover:text-purple-700 p-2 rounded-lg hover:bg-purple-50">
-                                                    <FontAwesomeIcon icon={faDownload} />
-                                                </button>
-                                                <button 
-                                                    onClick={() => handleDeleteFile(doc)}
-                                                    className="text-red-500 hover:text-red-700 p-2 rounded-lg hover:bg-red-50"
-                                                >
-                                                    <FontAwesomeIcon icon={faTrash} />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="text-center py-12">
-                                <FontAwesomeIcon icon={faFileAlt} className="text-gray-300 text-6xl mb-4" />
-                                <h3 className="text-xl font-medium text-gray-500 mb-2">No documents found</h3>
-                                <p className="text-gray-400">Try adjusting your search or filters</p>
-                            </div>
-                        )}
-                    </div>
-                )}
-            </div>
-
-            {/* Upload Modal */}
-            {showUploadModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-xl p-6 w-full max-w-md">
-                        <h3 className="text-xl font-bold text-gray-800 mb-4">Upload Files</h3>
-                        <form className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Select Club</label>
-                                <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                                    <option value="">Choose a club...</option>
-                                    {clubs.map(club => (
-                                        <option key={club.id} value={club.id}>{club.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">File Type</label>
-                                <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                                    <option value="image">Image</option>
-                                    <option value="document">Document</option>
-                                </select>
-                            </div>
-        <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Choose Files</label>
-                                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                                    <FontAwesomeIcon icon={faUpload} className="text-gray-400 text-3xl mb-2" />
-                                    <p className="text-gray-500">Drag and drop files here or click to browse</p>
-                                    <input type="file" multiple className="hidden" />
-                                </div>
-                            </div>
-                            <div className="flex space-x-3 pt-4">
-                                <button 
-                                    type="button"
-                                    onClick={() => setShowUploadModal(false)}
-                                    className="flex-1 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
-                                >
-                                    Cancel
-                                </button>
-                                <button 
-                                    type="submit"
-                                    className="flex-1 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
-                                >
-                                    Upload Files
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-
-            {/* Delete Confirmation Modal */}
-            {showDeleteModal && selectedFile && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-xl p-6 w-full max-w-md">
-                        <h3 className="text-xl font-bold text-gray-800 mb-4">Delete File</h3>
-                        <p className="text-gray-600 mb-6">
-                            Are you sure you want to delete "{selectedFile.title || selectedFile.name}"? This action cannot be undone.
-                        </p>
-                        <div className="flex space-x-3">
-                            <button 
-                                onClick={() => setShowDeleteModal(false)}
-                                className="flex-1 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
-                            >
-                                Cancel
-                            </button>
-                            <button 
-                                onClick={confirmDelete}
-                                className="flex-1 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
-                            >
-                                Delete
-                            </button>
-                        </div>
-                    </div>
+      {/* Empty State */}
+      {filteredClubs.length === 0 && (
+        <div className="text-center py-12">
+          <FontAwesomeIcon icon={faFolderOpen} className="text-gray-300 text-6xl mb-4" />
+          <h3 className="text-xl font-medium text-gray-500 mb-2">No clubs found</h3>
+          <p className="text-gray-400">Try adjusting your search or filters</p>
         </div>
-            )}
+      )}
 
-            {/* Lightbox Modal */}
-            {lightboxImage && (
-                <LightboxModal 
-                    image={lightboxImage} 
-                    onClose={() => setLightboxImage(null)} 
+      {/* Add Club Modal */}
+      {showAddClubModal && adminMemberClubId && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">Add New Club</h3>
+            <form className="space-y-4" onSubmit={(e) => {
+              e.preventDefault();
+              handleAddClub({
+                id: allClubs.length + 1,
+                name: e.target.clubName.value,
+                category: e.target.clubCategory.value,
+                description: e.target.clubDescription.value,
+                image: "/img/Club_Placeholder.png",
+                gallery: [],
+                documents: [],
+              });
+            }}>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Club Name</label>
+                <input 
+                  type="text" 
+                  name="clubName"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  placeholder="Enter club name"
+                  required
                 />
-            )}
-        </main>
-    )
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                <select 
+                  name="clubCategory"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  required
+                >
+                  <option value="">Select category</option>
+                  <option value="Arts">Arts</option>
+                  <option value="Technology">Technology</option>
+                  <option value="Strategy">Strategy</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                <textarea 
+                  name="clubDescription"
+                  rows="3"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  placeholder="Enter club description"
+                ></textarea>
+              </div>
+              <div className="flex space-x-3 pt-4">
+                <button 
+                  type="button"
+                  onClick={() => setShowAddClubModal(false)}
+                  className="flex-1 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  className="flex-1 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  Add Club
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Club Modal */}
+      {showEditClubModal && selectedClub && adminMemberClubId && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">Edit Club</h3>
+            <form className="space-y-4" onSubmit={(e) => {
+              e.preventDefault();
+              handleEditClub({
+                ...selectedClub,
+                name: e.target.clubName.value,
+                category: e.target.clubCategory.value,
+                description: e.target.clubDescription.value,
+              });
+            }}>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Club Name</label>
+                <input 
+                  type="text" 
+                  name="clubName"
+                  defaultValue={selectedClub.name}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                <select 
+                  name="clubCategory"
+                  defaultValue={selectedClub.category}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  required
+                >
+                  <option value="">Select category</option>
+                  <option value="Arts">Arts</option>
+                  <option value="Technology">Technology</option>
+                  <option value="Strategy">Strategy</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                <textarea 
+                  name="clubDescription"
+                  defaultValue={selectedClub.description}
+                  rows="3"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                ></textarea>
+              </div>
+              <div className="flex space-x-3 pt-4">
+                <button 
+                  type="button"
+                  onClick={() => setShowEditClubModal(false)}
+                  className="flex-1 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  className="flex-1 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add File Modal */}
+      {showAddFileModal && selectedFileClubId && adminMemberClubId && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">Add New File to Club {selectedFileClubId}</h3>
+            <form className="space-y-4" onSubmit={(e) => {
+              e.preventDefault();
+              handleAddFile({
+                clubId: selectedFileClubId,
+                name: e.target.fileName.value,
+                url: e.target.fileUrl.value,
+                type: e.target.fileType.value,
+              });
+            }}>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">File Name</label>
+                <input 
+                  type="text" 
+                  name="fileName"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  placeholder="Enter file name"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">File URL</label>
+                <input 
+                  type="url" 
+                  name="fileUrl"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  placeholder="Enter file URL"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">File Type</label>
+                <select 
+                  name="fileType"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  required
+                >
+                  <option value="">Select file type</option>
+                  <option value="image">Image</option>
+                  <option value="pdf">PDF</option>
+                </select>
+              </div>
+              <div className="flex space-x-3 pt-4">
+                <button 
+                  type="button"
+                  onClick={() => setShowAddFileModal(false)}
+                  className="flex-1 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  className="flex-1 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  Add File
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </main>
+  );
 }

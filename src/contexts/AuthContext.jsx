@@ -16,6 +16,36 @@ const AuthContextProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const Register = async (name, email, password) => {
+
+    console.log('Recieved this is credantials name : ' + name + ' email ' + email + ' passowrd : ' + password)
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify( name, email, password ),
+      });
+
+      const data = await response
+        .json()
+        .catch(() => ({ message: 'Server error, please try again later.' }));
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Registration failed');
+      }
+
+      toast.success('Registration successful! Please log in.');
+      setLoading(false);
+      return data;
+    } catch (error) {
+      toast.error(error.message || 'Registration failed. Please try again.');
+      setLoading(false);
+      throw error;
+    }
+  };
   const refreshToken = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
@@ -150,36 +180,7 @@ const AuthContextProvider = ({ children }) => {
     }
   };
 
-  const Register = async ({ name, email, password }) => {
-    try {
-      setLoading(true);
-      // Use exact specified API endpoint
-      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        // Match requested body structure: {name, email, password}
-        body: JSON.stringify({ name, email, password }),
-      });
 
-      const data = await response
-        .json()
-        .catch(() => ({ message: 'Server error, please try again later.' }));
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Registration failed');
-      }
-
-      toast.success('Registration successful! Please log in.');
-      setLoading(false);
-      return data;
-    } catch (error) {
-      toast.error(error.message || 'Registration failed. Please try again.');
-      setLoading(false);
-      throw error;
-    }
-  };
 
   const Refresh = async () => {
     try {

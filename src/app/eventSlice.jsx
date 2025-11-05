@@ -3,6 +3,105 @@ import { API_BASE_URL } from '../config/api';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
+
+
+  export const addEvents = createAsyncThunk(
+    'events/addEvents',
+    async (eventData, { rejectWithValue }) => {
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        return rejectWithValue('User not authenticated');
+      }
+      try {
+        console.log('Event Data (raw FormData object):', eventData);
+        for (let [key, value] of eventData.entries()) {
+          console.log(key, value);
+        }
+        console.log('Request Headers:', { Authorization: `Bearer ${token}` });
+        const response = await fetch(`${API_BASE_URL}/api/addEvent`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: eventData,
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          return rejectWithValue(errorData);
+        }
+        const data = await response.json();
+        toast.success('Event added successfully');
+        return data;
+      } catch (error) {
+        return rejectWithValue(error.message);
+      }
+    },
+  );
+  export const updateEvents = createAsyncThunk(
+    'events/updateEvents',
+    async ({ eventId, eventData }, { rejectWithValue }) => {
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        return rejectWithValue('User not authenticated');
+      }
+      try {
+        console.log('Updating event with ID:', eventId);
+        console.log('Event Data (raw FormData object) in updateEvents thunk:', eventData);
+        for (let [key, value] of eventData.entries()) {
+          console.log('FormData entry:', key, value);
+        }
+        eventData.append('_method', 'PUT');
+        console.log('Request Headers for Update:', { Authorization: `Bearer ${token}` });
+        const response = await fetch(`${API_BASE_URL}/api/events/${eventId}`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: eventData,
+
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error('Update Event API Error:', errorData);
+          return rejectWithValue(errorData);
+        }
+        const data = await response.json();
+        console.log('Update Event API Response:', data);
+        toast.success('Event updated successfully');
+        return data;
+      } catch (error) {
+        console.error('Update Event Thunk Error:', error);
+        return rejectWithValue(error.message);
+      }
+    },
+  );
+  export const deleteEvents = createAsyncThunk(
+    'events/deleteEvents',
+    async (eventId, { rejectWithValue }) => {
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        return rejectWithValue('User not authenticated');
+      }
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/events/${eventId}`, {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          return rejectWithValue(errorData);
+        }
+        toast.success('Event deleted successfully');
+        return eventId; // Return the ID of the deleted event
+      } catch (error) {
+        return rejectWithValue(error.message);
+      }
+    },
+  );
+
+
 export const fetchEvents = createAsyncThunk('events/fetchEvents', async () => {
   const response = await fetch(`${API_BASE_URL}/api/events`);
 
@@ -189,7 +288,7 @@ const eventSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(fetchEvents.pending, (state) => {
-        state.loading = false;
+        state.loading = true;
         state.error = null;
       })
       .addCase(fetchEvents.fulfilled, (state, action) => {
@@ -276,6 +375,48 @@ const eventSlice = createSlice({
       .addCase(fetchClubs.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
+      })
+      .addCase(addEvents.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(addEvents.fulfilled, (state, action) => {
+        state.loading = false;
+        state.events.push(action.payload);
+        applyFilters(state);
+      })
+      .addCase(addEvents.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || action.error.message;
+      })
+      .addCase(updateEvents.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateEvents.fulfilled, (state, action) => {
+        state.loading = false;
+        const index = state.events.findIndex((event) => event.id === action.payload.id);
+        if (index !== -1) {
+          state.events[index] = action.payload;
+        }
+        applyFilters(state);
+      })
+      .addCase(updateEvents.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || action.error.message;
+      })
+      .addCase(deleteEvents.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteEvents.fulfilled, (state, action) => {
+        state.loading = false;
+        state.events = state.events.filter((event) => event.id !== action.payload);
+        applyFilters(state);
+      })
+      .addCase(deleteEvents.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || action.error.message;
       });
   },
 });

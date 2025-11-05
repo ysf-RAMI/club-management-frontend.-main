@@ -1,7 +1,7 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect, useRef, useState, useContext } from 'react';
 import { fetchUserRegisteredEvents, fetchPendingClubRequests } from '../../app/userSlice';
-import { AuthContext } from '../../contexts/AuthContext';
+import { AuthContext, useAuth } from '../../contexts/AuthContext';
 import { fetchEvents } from '../../app/eventSlice';
 import Loader from '../common/UI/Loader';
 import { useNavigate } from 'react-router-dom';
@@ -20,8 +20,7 @@ export default function StdDashboard({ onLinkClick }) {
   const { events, filteredEvents, eventsLoading } = useSelector((state) => state.events);
   const { registeredEvents, registeredEventsLoading, clubRequests, clubRequestsLoading } = useSelector((state) => state.user);
 
-  console.log('Registered Events:', registeredEvents);
-  console.log('Registered Events Loading:', registeredEventsLoading);
+
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -44,11 +43,16 @@ export default function StdDashboard({ onLinkClick }) {
       dispatch(fetchUserRegisteredEvents(user.id));
       dispatch(fetchPendingClubRequests(user.id));
     }
+
   }, [user, dispatch]);
 
   useEffect(() => {
     dispatch(fetchEvents());
   }, [dispatch]);
+
+  useEffect(() => {
+    console.log('this is user credantials : ' + user);
+  }, [])
 
   const checkClubRegister = (userId) => {
     const joinedClubs = clubs.filter((club) => club.users.some((user) => user.id === userId));
@@ -97,13 +101,12 @@ export default function StdDashboard({ onLinkClick }) {
                     return (
                       <div
                         key={club.id}
-                        className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer ${
-                          currentUserPivot.pivot.status === 'approved'
-                            ? 'bg-green-50 border-green-200'
-                            : currentUserPivot.pivot.status === 'pending'
-                              ? 'bg-yellow-50 border-yellow-200'
-                              : 'bg-red-50 border-red-200'
-                        }`}
+                        className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer ${currentUserPivot.pivot.status === 'approved'
+                          ? 'bg-green-50 border-green-200'
+                          : currentUserPivot.pivot.status === 'pending'
+                            ? 'bg-yellow-50 border-yellow-200'
+                            : 'bg-red-50 border-red-200'
+                          }`}
                       >
                         <div className="flex items-center">
                           <img

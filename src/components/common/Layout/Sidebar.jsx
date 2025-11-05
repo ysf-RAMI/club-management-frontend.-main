@@ -19,10 +19,8 @@ import { useAuth } from '../../../contexts/AuthContext';
 export default function Sidebar({ onLinkClick, activeContent }) {
   const [activeLink, setActiveLink] = useState(activeContent || 'Dashboard');
   const [userRole, setUserRole] = useState('');
-  const [hasClubs, setHasClubs] = useState(false); // Assume student has no clubs initially
+  const [hasClubs, setHasClubs] = useState(false);
   const { Logout } = useAuth();
-
-  
 
   useEffect(() => {
     const url = window.location.pathname;
@@ -107,18 +105,7 @@ export default function Sidebar({ onLinkClick, activeContent }) {
               <FontAwesomeIcon icon={faHistory} className="text-1xl" />{' '}
               <span className="ml-2 text-sm font-medium">Events</span>
             </a>
-            <a
-              href="#"
-              className={
-                activeLink === 'Club Files'
-                  ? 'bg-blue-100 text-blue-500 p-2 rounded-md w-full text-left'
-                  : 'hover:bg-gray-200 p-2 rounded-md w-full text-left'
-              }
-              onClick={() => handleLinkClick('Club Files')}
-            >
-              <FontAwesomeIcon icon={faFile} className="text-1xl" />{' '}
-              <span className="ml-2 text-sm font-medium">Club Files</span>
-            </a>
+
           </>
         )}
 
@@ -176,6 +163,18 @@ export default function Sidebar({ onLinkClick, activeContent }) {
             >
               <FontAwesomeIcon icon={faClipboardList} className="text-1xl" />{' '}
               <span className="ml-2 text-sm font-medium">Club Management</span>
+            </a>{' '}
+            <a
+              href="#"
+              className={
+                activeLink === 'My Club'
+                  ? 'bg-blue-100 text-blue-500 p-2 rounded-md w-full text-left'
+                  : 'hover:bg-gray-200 p-2 rounded-md w-full text-left'
+              }
+              onClick={() => handleLinkClick('My Club')}
+            >
+              <FontAwesomeIcon icon={faUsers} className="text-1xl" />{' '}
+              <span className="ml-2 text-sm font-medium">My Club</span>
             </a>
             <a
               href="#"
@@ -192,15 +191,16 @@ export default function Sidebar({ onLinkClick, activeContent }) {
             <a
               href="#"
               className={
-                activeLink === 'Club Files'
+                activeLink === 'Events Registration'
                   ? 'bg-blue-100 text-blue-500 p-2 rounded-md w-full text-left'
                   : 'hover:bg-gray-200 p-2 rounded-md w-full text-left'
               }
-              onClick={() => handleLinkClick('Club Files')}
+              onClick={() => handleLinkClick('Events Registration')}
             >
-              <FontAwesomeIcon icon={faFile} className="text-1xl" />{' '}
-              <span className="ml-2 text-sm font-medium">Manage Club Files</span>
+              <FontAwesomeIcon icon={faHistory} className="text-1xl" />{' '}
+              <span className="ml-2 text-sm font-medium">Events </span>
             </a>
+
           </>
         )}
 
@@ -218,14 +218,16 @@ export default function Sidebar({ onLinkClick, activeContent }) {
         </a>
         <p className="border-b border-gray-200 w-full"></p>
 
-        <a
+        <button
           href="#"
           className={'text-red-500 p-2 rounded-md w-full text-left hover:bg-red-100'}
           onClick={() => handleLinkClick('Logout')}
         >
           <FontAwesomeIcon icon={faRightFromBracket} className="text-1xl" />{' '}
-          <button className="ml-2 text-sm font-medium cursor-pointer" onClick={Logout}>Logout</button>
-        </a>
+          <a className="ml-2 text-sm font-medium cursor-pointer" onClick={Logout}>
+            Logout
+          </a>
+        </button>
       </div>
     </div>
   );

@@ -55,8 +55,9 @@ export default function EventDetails() {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-600 mb-4">Event Not Found</h2>
-          <p className="text-gray-500">The event you're looking for doesn't exist.</p>
+          <h2 className="text-2xl font-bold text-gray-600 mb-4"></h2>
+          <Loader />
+          <p className="text-gray-500">Loading event .</p>
         </div>
       </div>
     );
@@ -363,7 +364,7 @@ export default function EventDetails() {
                 <p className="text-red-500 text-center text-sm mt-2">Error: {registerError}</p>
               )}
 
-             
+
             </div>
 
             {/* Event Organizer Card */}
@@ -392,7 +393,7 @@ export default function EventDetails() {
               </div>
             )}
 
-            
+
           </div>
         </div>
 

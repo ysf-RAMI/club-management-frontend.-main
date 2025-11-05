@@ -1,8 +1,9 @@
 import { useState, useEffect, useContext } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { fetchEvents } from '../../app/eventSlice';
-import { fetchUserRegisteredEvents } from '../../app/userSlice';
+import { toast } from 'react-toastify';
+import { fetchEventById, fetchEvents, registerForEvent } from '../../app/eventSlice';
+import { addRegisteredEvent, fetchUserRegisteredEvents } from '../../app/userSlice';
 import { AuthContext } from '../../contexts/AuthContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -30,11 +31,14 @@ export default function EventsRegistration() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterClub, setFilterClub] = useState('');
 
-  const { events, eventsLoading } = useSelector((state) => state.events);
+  const { events, eventsLoading, error } = useSelector((state) => state.events);
   const { registeredEvents, registeredEventsLoading } = useSelector((state) => state.user);
   const { clubs } = useSelector((state) => state.clubs);
 
   const clubNames = ['All Clubs', ...clubs.map((club) => club.name)];
+
+  const isRegistered = (eventId) =>
+    registeredEvents.some((event) => event.id === eventId);
 
   useEffect(() => {
     dispatch(fetchEvents());
@@ -66,7 +70,8 @@ export default function EventsRegistration() {
   };
 
   // Helper function to get event status based on registration
-  const getEventStatus = (event) => {
+  const getEventStatus = (event, registeredEvents) => {
+    console.log('Checking event status for event ID:', event.id, 'Registered Events:', registeredEvents);
     const isPast = new Date(event.date) < new Date();
 
     if (isPast) return 'Completed';
@@ -94,7 +99,7 @@ export default function EventsRegistration() {
     return eventsList.filter((event) => {
       const clubName = event.club?.name || event.club_info?.name || '';
       return (
-        event.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
+        (event.title?.toLowerCase() || '').includes(searchTerm.toLowerCase()) &&
         (filterClub === '' || filterClub === 'All Clubs' || clubName === filterClub)
       );
     });
@@ -104,8 +109,22 @@ export default function EventsRegistration() {
   const upcomingEvents = events.filter((event) => new Date(event.date) >= today);
   const pastEvents = events.filter((event) => new Date(event.date) < today);
 
-  const handleRegisterEvent = (eventId) => {
-    console.log('Registering for event:', eventId);
+  const handleRegisterEvent = async (id) => {
+    if (id) {
+      const eventToRegister = events.find((event) => event.id === id);
+      if (!eventToRegister) {
+        toast.error('Event not found.');
+        return;
+      }
+      const result = await dispatch(registerForEvent({ eventId: id }));
+      if (registerForEvent.fulfilled.match(result)) {
+        dispatch(fetchEventById(id));
+        const registeredEventPayload = { ...eventToRegister, status: 'pending' };
+        dispatch(addRegisteredEvent(registeredEventPayload));
+      } else if (registerForEvent.rejected.match(result)) {
+        toast.error(result.payload || 'Failed to register for the event.');
+      }
+    }
   };
 
   const handleViewEvent = (eventId) => {
@@ -132,11 +151,11 @@ export default function EventsRegistration() {
         return 'bg-gray-100 text-gray-800';
     }
   };
-  const EventCard = ({ event, showActions = true }) => {
-    const status = getEventStatus(event);
+  const EventCard = ({ event, showActions = true, registeredEvents }) => {
+    const status = getEventStatus(event, registeredEvents);
     const clubName = event.club?.name || event.club_info?.name || 'Unknown Club';
     const category = event.club?.categorie || 'General';
-    const eventImage = event.image || 'https://via.placeholder.com/100x100?text=Event';
+    const eventImage = event.image || '/vite.svg';
 
     return (
       <div className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300 cursor-pointer flex flex-col">
@@ -192,22 +211,27 @@ export default function EventsRegistration() {
 
           {showActions && (
             <div className="flex items-center space-x-2 mt-4">
-              <button
-                onClick={() => handleViewEvent(event.id)}
-                className="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer"
-              >
-                <FontAwesomeIcon icon={faEye} className="mr-1" />
-                View
-              </button>
-              {status === 'Available' && (
+              {status === 'Available' ? (
                 <button
                   onClick={() => handleRegisterEvent(event.id)}
-                  className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer"
+                  className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 >
-                  <FontAwesomeIcon icon={faPlus} className="mr-1" />
                   Register
                 </button>
+              ) : (
+                <button
+                  disabled
+                  className="flex-1 px-4 py-2 text-sm font-medium text-white bg-gray-400 rounded-md cursor-not-allowed"
+                >
+                  {status === 'Full' ? 'Full' : 'Registered'}
+                </button>
               )}
+              <button
+                onClick={() => handleViewEvent(event.id)}
+                className="flex-1 px-4 py-2 text-sm font-medium text-blue-600 border border-blue-600 rounded-md hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              >
+                View Details
+              </button>
             </div>
           )}
         </div>
@@ -317,17 +341,17 @@ export default function EventsRegistration() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {activeTab === 'upcoming' &&
             getFilteredEvents(upcomingEvents).map((event) => (
-              <EventCard key={event.id} event={event} />
+              <EventCard key={event.id} event={event} registeredEvents={registeredEvents} />
             ))}
 
           {activeTab === 'registered' &&
             getFilteredEvents(registeredEvents).map((event) => (
-              <EventCard key={event.id} event={event} />
+              <EventCard key={event.id} event={event} registeredEvents={registeredEvents} />
             ))}
 
           {activeTab === 'past' &&
             getFilteredEvents(pastEvents).map((event) => (
-              <EventCard key={event.id} event={event} showActions={false} />
+              <EventCard key={event.id} event={event} showActions={false} registeredEvents={registeredEvents} />
             ))}
         </div>
       )}

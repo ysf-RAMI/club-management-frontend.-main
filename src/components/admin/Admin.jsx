@@ -5,6 +5,7 @@ import ManageClubs from './ManageClubs';
 import ManageEvents from './ManageEvents';
 import UserManagement from './UserManagement';
 import Profile from '../common/Profile';
+import Loader from '../common/UI/Loader';
 
 export default function Admin() {
   const [activeContent, setActiveContent] = useState('Dashboard'); // Default content
@@ -15,7 +16,7 @@ export default function Admin() {
 
   const adminUser = {
     firstName: "John",
-    lastName: "Doe", 
+    lastName: "Doe",
     email: "john.doe@university.edu",
     phone: "+1 (555) 765-4321",
     department: "Administration",
@@ -34,7 +35,10 @@ export default function Admin() {
         {activeContent === 'Manage Events' && <ManageEvents />}
         {activeContent === 'Manage Users' && <UserManagement />}
         {activeContent === 'Profile' && <Profile user={adminUser} />}
-        {activeContent === 'Logout' && <div>Logging out...</div>}
+        {activeContent === 'Logout' && <div>
+          <Loader />
+          Logout ...
+        </div>}
       </div>
     </div>
   );

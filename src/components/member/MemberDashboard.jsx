@@ -13,8 +13,48 @@ import {
   faUser,
 } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
+import { useContext, useEffect, useState } from 'react';
+import { AuthContext } from '../../contexts/AuthContext';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchClubs } from '../../app/clubSlice';
+import { API_BASE_URL } from '../../config/api';
 
 export default function MemberDashboard(props) {
+  const { clubs, loading } = useSelector((state) => state.clubs);
+  const dispatch = useDispatch();
+
+  // Get current user
+  const me = localStorage.getItem('user');
+  const meId = me ? JSON.parse(me).id : null;
+  const { user } = useContext(AuthContext);
+  const url = API_BASE_URL;
+
+  // Local state for joined 
+  const [joinedClubs, setJoinedClubs] = useState([]);
+
+  // Fetch clubs on mount
+  useEffect(() => {
+    dispatch(fetchClubs());
+  }, [dispatch]);
+
+  // Filter clubs where user is a member with approved status
+  useEffect(() => {
+    if (clubs.length > 0 && meId) {
+      const myJoinedClubs = clubs.filter((club) => {
+        if (!club.users) return false;
+
+        // Check if user is in the club with approved status
+        const userInClub = club.users.find(
+          (user) => user.id === meId && user.pivot.status === 'approved',
+        );
+
+        return userInClub !== undefined;
+      });
+
+      setJoinedClubs(myJoinedClubs);
+    }
+  }, [clubs, meId]);
+
   return (
     <div
       className="flex flex-col lg:flex-row min-h-screen 
@@ -23,13 +63,13 @@ export default function MemberDashboard(props) {
       <main className="flex-1">
         <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-3 rounded-xl shadow-lg mb-6 flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-bold mb-1">Welcome back, Youssef! 👋</h2>
+            <h2 className="text-lg font-bold mb-1">Welcome back, {user.name} 👋</h2>
             <p className="text-purple-100 text-sm">Here's your club activity overview</p>
             <div className="mt-4 flex space-x-4">
               <div className="flex items-center">
                 <FontAwesomeIcon icon={faUsers} className="text-purple-300 mr-2" />
                 <div>
-                  <p className="text-lg font-bold">4</p>
+                  <p className="text-lg font-bold">{joinedClubs.length}</p>
                   <p className="text-purple-100 text-xs">Clubs Joined</p>
                 </div>
               </div>
@@ -66,50 +106,27 @@ export default function MemberDashboard(props) {
               </div>
               <div className="space-y-2 mt-3">
                 {/* Club Item 1 */}
-                <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg border border-gray-200">
-                  <div className="flex items-center">
-                    <img src="/img/Club1.png" alt="Photography Club" className="h-7 w-7 mr-2" />
-                    <div>
-                      <p className="font-medium text-gray-800 text-sm">Photography Club</p>
-                      <p className="text-xs text-gray-500">
-                        <span className="text-purple-600 font-semibold">Member</span> • 127 members
-                      </p>
+                {
+                  joinedClubs.map((c) => (
+                    <div key={c.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg border border-gray-200">
+                      <div className="flex items-center">
+                        <img src='/public/vite.svg' alt="Photography Club" className="h-7 w-7 mr-2" />
+                        <div>
+                          <p className="font-medium text-gray-800 text-sm">{c.name}</p>
+                          <p className="text-xs text-gray-500">
+                            <span className="text-purple-600 font-semibold">Member</span> • {c.users_count} members
+                          </p>
+                        </div>
+                      </div>
+                      <a href={`/clubs/${c.id}`} className="bg-purple-600 text-white px-3 py-1 rounded-lg hover:bg-purple-700 text-xs font-medium cursor-pointer">
+                        View Club
+                      </a>
                     </div>
-                  </div>
-                  <button className="bg-purple-600 text-white px-3 py-1 rounded-lg hover:bg-purple-700 text-xs font-medium cursor-pointer">
-                    View Club
-                  </button>
-                </div>
-                {/* Club Item 2 */}
-                <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg border border-gray-200">
-                  <div className="flex items-center">
-                    <img src="/img/Club2.png" alt="Robotics Club" className="h-7 w-7 mr-2" />
-                    <div>
-                      <p className="font-medium text-gray-800 text-sm">Robotics Club</p>
-                      <p className="text-xs text-gray-500">
-                        <span className="text-purple-600 font-semibold">Member</span> • 89 members
-                      </p>
-                    </div>
-                  </div>
-                  <button className="bg-purple-600 text-white px-3 py-1 rounded-lg hover:bg-purple-700 text-xs font-medium cursor-pointer">
-                    View Club
-                  </button>
-                </div>
-                {/* Club Item 3 */}
-                <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg border border-gray-200">
-                  <div className="flex items-center">
-                    <img src="/img/Club3.png" alt="Debate Society" className="h-7 w-7 mr-2" />
-                    <div>
-                      <p className="font-medium text-gray-800 text-sm">Debate Society</p>
-                      <p className="text-xs text-gray-500">
-                        <span className="text-purple-600 font-semibold">Member</span> • 45 members
-                      </p>
-                    </div>
-                  </div>
-                  <button className="bg-purple-600 text-white px-3 py-1 rounded-lg hover:bg-purple-700 text-xs font-medium cursor-pointer">
-                    View Club
-                  </button>
-                </div>
+
+                  ))
+
+                }
+
               </div>
             </div>
 
@@ -235,8 +252,8 @@ export default function MemberDashboard(props) {
         <div className="bg-white p-4 rounded-xl shadow-md mt-6">
           <h3 className="text-base font-semibold text-gray-800 mb-3">Quick Links</h3>
           <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            <li className="flex items-center gap-2 border border-gray-200 p-2 rounded-md hover:bg-purple-50 hover:border-purple-300 transition cursor-pointer" 
-              onClick={() => { props.onLinkClick('My Clubs'); props.activeContent('My Clubs')}}  >
+            <li className="flex items-center gap-2 border border-gray-200 p-2 rounded-md hover:bg-purple-50 hover:border-purple-300 transition cursor-pointer"
+              onClick={() => { props.onLinkClick('My Clubs'); props.activeContent('My Clubs') }}  >
               <span className="bg-purple-100 p-2 rounded-md">
                 <FontAwesomeIcon icon={faChartPie} className="text-purple-600" />
               </span>
@@ -245,8 +262,8 @@ export default function MemberDashboard(props) {
                 <p className="text-xs text-gray-500">Review your joined clubs</p>
               </div>
             </li>
-            <li className="flex items-center gap-2 border border-gray-200 p-2 rounded-md hover:bg-purple-50 hover:border-purple-300 transition cursor-pointer" 
-              onClick={() => { props.onLinkClick('Events'); props.activeContent('Events')}}  >
+            <li className="flex items-center gap-2 border border-gray-200 p-2 rounded-md hover:bg-purple-50 hover:border-purple-300 transition cursor-pointer"
+              onClick={() => { props.onLinkClick('Events'); props.activeContent('Events') }}  >
               <span className="bg-purple-100 p-2 rounded-md">
                 <FontAwesomeIcon icon={faCalendarAlt} className="text-purple-600" />
               </span>
@@ -255,8 +272,8 @@ export default function MemberDashboard(props) {
                 <p className="text-xs text-gray-500">See upcoming events</p>
               </div>
             </li>
-            <li className="flex items-center gap-2 border border-gray-200 p-2 rounded-md hover:bg-purple-50 hover:border-purple-300 transition cursor-pointer" 
-              onClick={() => { props.onLinkClick('Profile'); props.activeContent('Profile')}}  >
+            <li className="flex items-center gap-2 border border-gray-200 p-2 rounded-md hover:bg-purple-50 hover:border-purple-300 transition cursor-pointer"
+              onClick={() => { props.onLinkClick('Profile'); props.activeContent('Profile') }}  >
               <span className="bg-purple-100 p-2 rounded-md">
                 <FontAwesomeIcon icon={faUser} className="text-purple-600" />
               </span>

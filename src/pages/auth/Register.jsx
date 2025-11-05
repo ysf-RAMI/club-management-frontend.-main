@@ -15,9 +15,13 @@ const Register = () => {
   useEffect(() => {
     if (isAuthenticated) {
       if (role === 'admin') {
-        navigate('/admin/dashboard');
+        navigate('/admin');
       } else if (role === 'member') {
-        navigate('/member/dashboard');
+        navigate('/member');
+      } else if (role === 'student') {
+        navigate('/student');
+      } else if (role === 'admin-member') {
+        navigate('/adminMember');
       } else {
         navigate('/');
       }
@@ -31,10 +35,14 @@ const Register = () => {
       return;
     }
     try {
-      await register({ name, email, password });
+
+      await register({
+        "name": name,
+        "email": email,
+        "password": password
+      });
       navigate('/login');
     } catch (error) {
-      // Error message is already handled by toast in AuthContext
       console.error('Registration error:', error);
     }
   };
@@ -43,7 +51,7 @@ const Register = () => {
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
         <h2 className="text-2xl font-bold text-center text-gray-900">Register</h2>
-        <form className="space-y-4" onSubmit={handleSubmit}>
+        <div className="space-y-4" >
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-gray-700">
               Name
@@ -104,12 +112,12 @@ const Register = () => {
             />
           </div>
           <button
-            type="submit"
+            onClick={handleSubmit}
             className="w-full px-4 py-2 text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
           >
             Register
           </button>
-        </form>
+        </div>
         <p className="text-sm text-center text-gray-600">
           Already have an account?{' '}
           <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500">

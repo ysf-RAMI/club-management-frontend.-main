@@ -89,7 +89,12 @@ export const userSlice = createSlice({
     clubRequestsLoading: false,
     users: [],
   },
-  reducers: {},
+  reducers: {
+    addRegisteredEvent: (state, action) => {
+      console.log('Adding registered event:', action.payload);
+      state.registeredEvents = [...state.registeredEvents, action.payload];
+    },
+  },
   extraReducers: (builder) => {
     builder.addCase(fetchUserById.rejected, (state, action) => {
       state.loading = false;
@@ -141,5 +146,7 @@ export const userSlice = createSlice({
     });
   },
 });
+
+export const { addRegisteredEvent } = userSlice.actions;
 
 export default userSlice.reducer;
