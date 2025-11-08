@@ -219,14 +219,11 @@ export default function Sidebar({ onLinkClick, activeContent }) {
         <p className="border-b border-gray-200 w-full"></p>
 
         <button
-          href="#"
           className={'text-red-500 p-2 rounded-md w-full text-left hover:bg-red-100'}
-          onClick={() => handleLinkClick('Logout')}
+          onClick={Logout}
         >
           <FontAwesomeIcon icon={faRightFromBracket} className="text-1xl" />{' '}
-          <a className="ml-2 text-sm font-medium cursor-pointer" onClick={Logout}>
-            Logout
-          </a>
+          <span className="ml-2 text-sm font-medium">Logout</span>
         </button>
       </div>
     </div>

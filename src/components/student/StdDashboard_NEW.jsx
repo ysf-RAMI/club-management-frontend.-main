@@ -68,7 +68,7 @@ export default function StdDashboard({ onLinkClick }) {
             {/* Welcome Header */}
             <div className="mb-4">
                 <h1 className="text-2xl font-bold text-gray-900 mb-1">
-                    Welcome back, {user?.name}! 👋 
+                    Welcome back, {user?.name}! 👋
                 </h1>
                 <p className="text-gray-600 text-sm">Here's what's happening with your clubs and events</p>
             </div>

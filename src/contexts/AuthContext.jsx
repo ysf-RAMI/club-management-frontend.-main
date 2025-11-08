@@ -26,7 +26,7 @@ const AuthContextProvider = ({ children }) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify( name, email, password ),
+        body: JSON.stringify(name, email, password),
       });
 
       const data = await response
@@ -71,6 +71,81 @@ const AuthContextProvider = ({ children }) => {
     }
   };
 
+  const checkRoleChange = async () => {
+    try {
+      const accessToken = localStorage.getItem('access_token');
+      const userId = user?.id;
+      if (!accessToken || !userId) return;
+
+      // Fetch latest user data from database with clubs
+      const response = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!response.ok) return;
+
+      const userData = await response.json();
+      const dbRole = userData.role; // Base role from database
+      const currentRole = localStorage.getItem('role'); // Current role in localStorage
+
+      // Determine effective role based on base role and club memberships
+      let effectiveRole = dbRole;
+
+      // Only check club roles if user is currently a member in database
+      if (dbRole === 'member' && userData.clubs && userData.clubs.length > 0) {
+        // Check if user is admin-member in any club
+        const hasAdminMemberRole = userData.clubs.some(
+          (club) => club.pivot && club.pivot.role === 'admin-member'
+        );
+
+        // If they are admin-member in at least one club, prioritize that role
+        if (hasAdminMemberRole) {
+          effectiveRole = 'admin-member';
+        }
+      }
+
+      // Always check if roles are different (handles base role changes like member -> student)
+      if (effectiveRole !== currentRole) {
+        console.log(`Role changed from ${currentRole} to ${effectiveRole}`);
+
+        // Update all user data
+        setUser(userData);
+        setRole(effectiveRole);
+        localStorage.setItem('user', JSON.stringify(userData));
+        localStorage.setItem('role', effectiveRole);
+
+        // Show notification
+        toast.info(`Your role has been updated to ${effectiveRole}. Redirecting...`);
+
+        // Redirect based on effective role
+        setTimeout(() => {
+          switch (effectiveRole) {
+            case 'admin':
+              window.location.href = '/admin';
+              break;
+            case 'admin-member':
+              window.location.href = '/adminMember';
+              break;
+            case 'member':
+              window.location.href = '/member';
+              break;
+            case 'student':
+              window.location.href = '/student';
+              break;
+            default:
+              window.location.href = '/';
+          }
+        }, 1500);
+      }
+    } catch (error) {
+      console.error('Error checking role change:', error);
+    }
+  };
+
   const checkTokenExpiration = async () => {
     const expiresIn = localStorage.getItem('expires_in');
     const accessToken = localStorage.getItem('access_token');
@@ -93,15 +168,27 @@ const AuthContextProvider = ({ children }) => {
     setIsAuthenticated(newIsAuthenticated);
     setLoading(false);
 
-    // Set up interval for token expiration check only if authenticated
-    let interval;
+    // Set up intervals for token expiration check and role change check
+    let tokenInterval;
+    let roleInterval;
+
     if (newIsAuthenticated) {
-      interval = setInterval(checkTokenExpiration, 60 * 60 * 1000); // Check every hour
+      // Check token expiration every hour
+      tokenInterval = setInterval(checkTokenExpiration, 60 * 60 * 1000);
+
+      // Check for role changes every 5 minutes
+      roleInterval = setInterval(checkRoleChange, 5 * 60 * 1000);
+
+      // Also check role immediately when component mounts
+      checkRoleChange();
     }
 
     return () => {
-      if (interval) {
-        clearInterval(interval);
+      if (tokenInterval) {
+        clearInterval(tokenInterval);
+      }
+      if (roleInterval) {
+        clearInterval(roleInterval);
       }
     };
   }, [token]); // Dependency on token
@@ -124,12 +211,10 @@ const AuthContextProvider = ({ children }) => {
 
       const { access_token, role, expires_in } = data;
 
-      // Store token and role
+      // Store token temporarily
       setToken(access_token);
-      setRole(role);
       localStorage.setItem('access_token', access_token);
       localStorage.setItem('expires_in', expires_in);
-      localStorage.setItem('role', role);
 
       // Fetch user details using the access token
       const userResponse = await fetch(`${API_BASE_URL}/api/auth/me`, {
@@ -146,11 +231,58 @@ const AuthContextProvider = ({ children }) => {
         throw new Error(userData.message || 'Failed to fetch user details');
       }
 
-      // Store user details
-      setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
+      // If user is a member, fetch detailed club info to determine effective role
+      let effectiveRole = role;
+
+      if (role === 'member' && userData.id) {
+        try {
+          const detailedUserResponse = await fetch(`${API_BASE_URL}/api/users/${userData.id}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${access_token}`,
+            },
+          });
+
+          if (detailedUserResponse.ok) {
+            const detailedUserData = await detailedUserResponse.json();
+
+            // Check if user has admin-member role in any club
+            if (detailedUserData.clubs && detailedUserData.clubs.length > 0) {
+              const hasAdminMemberRole = detailedUserData.clubs.some(
+                club => club.pivot?.role === 'admin-member'
+              );
+
+              if (hasAdminMemberRole) {
+                effectiveRole = 'admin-member';
+              }
+            }
+
+            // Use detailed user data with clubs
+            setUser(detailedUserData);
+            localStorage.setItem('user', JSON.stringify(detailedUserData));
+          } else {
+            // Fallback to basic user data
+            setUser(userData);
+            localStorage.setItem('user', JSON.stringify(userData));
+          }
+        } catch (err) {
+          console.error('Error fetching detailed user data:', err);
+          setUser(userData);
+          localStorage.setItem('user', JSON.stringify(userData));
+        }
+      } else {
+        // For non-member roles, use basic user data
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
+      }
+
+      // Store the effective role
+      setRole(effectiveRole);
+      localStorage.setItem('role', effectiveRole);
+
       toast.success('Login successful!');
-      return data;
+      return { ...data, role: effectiveRole };
     } catch (error) {
       toast.error(error.message || 'Login failed. Please try again.');
       throw error;
@@ -179,8 +311,6 @@ const AuthContextProvider = ({ children }) => {
       setRole(null);
     }
   };
-
-
 
   const Refresh = async () => {
     try {
@@ -219,6 +349,7 @@ const AuthContextProvider = ({ children }) => {
         Logout,
         Register,
         Refresh,
+        checkRoleChange,
         isAuthenticated,
         loading,
         setLoading,
