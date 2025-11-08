@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import Sidebar from '../common/Layout/Sidebar';
+import { useNavigation } from '../common/Layout/UserLayout';
 import StdDashboard from './StdDashboard';
 import EventsRegistration from './EventsRegistration';
 import Profile from '../common/Profile';
 
 export default function Student() {
-  const [activeContent, setActiveContent] = useState('Dashboard');
+  const { activeContent, setActiveContent } = useNavigation();
   const [hasClubs, setHasClubs] = useState(false); // Assume student has no clubs initially
 
   const handleLinkClick = (link) => {
@@ -14,7 +15,7 @@ export default function Student() {
 
   const studentUser = {
     firstName: "Alex",
-    lastName: "Ray", 
+    lastName: "Ray",
     email: "alex.ray@university.edu",
     phone: "+1 (555) 555-5555",
     department: "Science",
@@ -24,7 +25,7 @@ export default function Student() {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex flex-1 bg-gray-50">
       <Sidebar onLinkClick={handleLinkClick} activeContent={activeContent} />
       <div className="flex-1 p-4">
         {/* Conditional rendering based on activeContent */}
@@ -32,7 +33,8 @@ export default function Student() {
           <StdDashboard onLinkClick={handleLinkClick} activeContent={activeContent} />
         )}
         {activeContent === 'Events Registration' && <EventsRegistration />}
-        {activeContent === 'Profile' && <Profile user={studentUser} />}
+        {activeContent === 'Profile' && <Profile user={studentUser} activeSection="profile" />}
+        {activeContent === 'Settings' && <Profile user={studentUser} activeSection="security" />}
         {activeContent === 'Logout' && (
           <div className="flex items-center justify-center min-h-screen">
             <div className="text-center">
