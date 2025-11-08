@@ -7,6 +7,7 @@ import { FaUsers, FaAward, FaCalendarAlt, FaClock, FaMapMarkerAlt } from 'react-
 import { IoMdCheckmarkCircleOutline } from 'react-icons/io';
 import { toast } from 'react-toastify';
 import { AuthContext } from '../../../contexts/AuthContext';
+import { API_BASE_URL } from '../../../config/api';
 
 export default function ClubDettailes() {
   const { id } = useParams();
@@ -106,7 +107,7 @@ export default function ClubDettailes() {
       <div className="max-w-7xl mx-auto">
         <div
           className="relative h-96 bg-cover bg-center max-w-7xl mx-auto"
-          style={{ backgroundImage: `url(${club.image})` }}
+          style={{ backgroundImage: `url(${API_BASE_URL}${club.image})` }}
         >
           <div className="absolute inset-0 flex justify-between items-end p-8">
             <div className="flex flex-col items-start justify-end h-full">

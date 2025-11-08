@@ -146,45 +146,43 @@ export default function Clubs() {
                           className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 w-full max-w-sm"
                         >
                           <img
-                            src={club.image || `/images/default_club_image.jpg`}
+                            src={club.image ? `${API_BASE_URL}${club.image}` : `/images/default_club_image.jpg`}
                             alt={club.name || 'Club image'}
                             className="w-full h-40 object-cover rounded-lg mb-4"
                           />
                           <div className="flex justify-between items-center mb-2">
                             <span
-                              className={`text-xs font-semibold px-2 py-1 rounded-full ${
-                                (club.categorie || club.category || '').toLowerCase() ===
+                              className={`text-xs font-semibold px-2 py-1 rounded-full ${(club.categorie || club.category || '').toLowerCase() ===
                                   'technologie' ||
-                                (club.categorie || club.category || '').toLowerCase() ===
+                                  (club.categorie || club.category || '').toLowerCase() ===
                                   'technology'
                                   ? 'bg-blue-100 text-blue-800'
                                   : (club.categorie || club.category || '').toLowerCase() ===
-                                      'academic'
+                                    'academic'
                                     ? 'bg-green-100 text-green-800'
                                     : (club.categorie || club.category || '').toLowerCase() ===
-                                          'arts & culture' ||
-                                        (club.categorie || club.category || '').toLowerCase() ===
-                                          'art'
+                                      'arts & culture' ||
+                                      (club.categorie || club.category || '').toLowerCase() ===
+                                      'art'
                                       ? 'bg-purple-100 text-purple-800'
                                       : (club.categorie || club.category || '').toLowerCase() ===
-                                          'sports'
+                                        'sports'
                                         ? 'bg-red-100 text-red-800'
                                         : (club.categorie || club.category || '').toLowerCase() ===
-                                            'volunteer'
+                                          'volunteer'
                                           ? 'bg-yellow-100 text-yellow-800'
                                           : 'bg-gray-100 text-gray-800'
-                              }`}
+                                }`}
                             >
                               {club.categorie || club.category || 'Uncategorized'}
                             </span>
                             <span
-                              className={`text-xs font-semibold px-2 py-1 rounded-full ${
-                                club.status === 'Active'
+                              className={`text-xs font-semibold px-2 py-1 rounded-full ${club.status === 'Active'
                                   ? 'bg-green-100 text-green-800'
                                   : club.status === 'Moderate'
                                     ? 'bg-yellow-100 text-yellow-800'
                                     : 'bg-gray-100 text-gray-800'
-                              }`}
+                                }`}
                             >
                               {club.status || 'Unknown'}
                             </span>
@@ -270,11 +268,10 @@ export default function Clubs() {
                   <button
                     key={number + 1}
                     onClick={() => paginate(number + 1)}
-                    className={`relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium ${
-                      currentPage === number + 1
+                    className={`relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium ${currentPage === number + 1
                         ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
                         : 'text-gray-700 hover:bg-gray-50'
-                    }`}
+                      }`}
                   >
                     {number + 1}
                   </button>

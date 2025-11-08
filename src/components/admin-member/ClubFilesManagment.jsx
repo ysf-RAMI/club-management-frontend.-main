@@ -2,26 +2,27 @@
 
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { 
-    faFolder, 
-    faImage, 
-    faFilePdf, 
-    faFileWord, 
-    faFileExcel, 
-    faFilePowerpoint,
-    faFileAlt,
-    faDownload,
-    faUpload,
-    faSearch,
-    faFilter,
-    faEye,
-    faTrash,
-    faEdit,
-    faCalendarAlt,
-    faUser,
-    faTimes,
-    faPlus
+import {
+  faFolder,
+  faImage,
+  faFilePdf,
+  faFileWord,
+  faFileExcel,
+  faFilePowerpoint,
+  faFileAlt,
+  faDownload,
+  faUpload,
+  faSearch,
+  faFilter,
+  faEye,
+  faTrash,
+  faEdit,
+  faCalendarAlt,
+  faUser,
+  faTimes,
+  faPlus
 } from "@fortawesome/free-solid-svg-icons"
+import { API_BASE_URL } from '../../config/api';
 
 export default function ClubFilesManagment() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -158,24 +159,24 @@ export default function ClubFilesManagment() {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="flex-1 max-w-md">
             <div className="relative">
-              <FontAwesomeIcon 
-                icon={faSearch} 
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" 
+              <FontAwesomeIcon
+                icon={faSearch}
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"
               />
-              <input 
-                type="text" 
+              <input
+                type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
-                placeholder="Search clubs..." 
+                className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                placeholder="Search clubs..."
               />
             </div>
           </div>
-          
+
           <div className="flex items-center gap-4">
             <div className="flex items-center">
               <FontAwesomeIcon icon={faFilter} className="text-gray-500 mr-2" />
-              <select 
+              <select
                 value={filterCategory}
                 onChange={(e) => setFilterCategory(e.target.value)}
                 className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
@@ -186,9 +187,9 @@ export default function ClubFilesManagment() {
                 <option value="Strategy">Strategy</option>
               </select>
             </div>
-            
+
             {adminMemberClubId && (
-              <button 
+              <button
                 onClick={() => setShowAddClubModal(true)}
                 className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
               >
@@ -204,20 +205,20 @@ export default function ClubFilesManagment() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredClubs.map(club => (
           <div key={club.id} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
-            <img 
-              src={club.image} 
+            <img
+              src={club.image ? `${API_BASE_URL}${club.image}` : '/img/Club1.png'}
               alt={club.name}
               className="w-full h-48 object-cover"
             />
             <div className="p-6">
               <h3 className="text-xl font-bold text-gray-800 mb-2">{club.name}</h3>
               <p className="text-gray-600 mb-4 text-sm line-clamp-2">{club.description}</p>
-              
+
               <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
                 <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">{club.category}</span>
                 <div className="flex space-x-2">
                   {adminMemberClubId && (
-                    <button 
+                    <button
                       onClick={() => {
                         setSelectedClub(club);
                         setShowEditClubModal(true);
@@ -228,7 +229,7 @@ export default function ClubFilesManagment() {
                     </button>
                   )}
                   {adminMemberClubId && (
-                    <button 
+                    <button
                       onClick={() => handleDeleteClub(club.id)}
                       className="text-red-600 hover:text-red-900"
                     >
@@ -246,7 +247,7 @@ export default function ClubFilesManagment() {
                     <div key={file.id} className="relative group">
                       <img src={file.url} alt={file.name} className="w-full h-20 object-cover rounded-lg" />
                       {adminMemberClubId && (
-                        <button 
+                        <button
                           onClick={() => handleDeleteFile(club.id, file.id)}
                           className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
                         >
@@ -260,7 +261,7 @@ export default function ClubFilesManagment() {
                 <p className="text-gray-500 text-sm mb-4">No gallery images.</p>
               )}
               {adminMemberClubId && (
-                <button 
+                <button
                   onClick={() => {
                     setSelectedFileClubId(club.id);
                     setShowAddFileModal(true);
@@ -283,7 +284,7 @@ export default function ClubFilesManagment() {
                         {file.name}
                       </a>
                       {adminMemberClubId && (
-                        <button 
+                        <button
                           onClick={() => handleDeleteFile(club.id, file.id)}
                           className="text-red-600 hover:text-red-900"
                         >
@@ -297,7 +298,7 @@ export default function ClubFilesManagment() {
                 <p className="text-gray-500 text-sm">No documents.</p>
               )}
               {adminMemberClubId && (
-                <button 
+                <button
                   onClick={() => {
                     setSelectedFileClubId(club.id);
                     setShowAddFileModal(true);
@@ -341,8 +342,8 @@ export default function ClubFilesManagment() {
             }}>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Club Name</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   name="clubName"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   placeholder="Enter club name"
@@ -351,7 +352,7 @@ export default function ClubFilesManagment() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
-                <select 
+                <select
                   name="clubCategory"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   required
@@ -364,7 +365,7 @@ export default function ClubFilesManagment() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                <textarea 
+                <textarea
                   name="clubDescription"
                   rows="3"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
@@ -372,14 +373,14 @@ export default function ClubFilesManagment() {
                 ></textarea>
               </div>
               <div className="flex space-x-3 pt-4">
-                <button 
+                <button
                   type="button"
                   onClick={() => setShowAddClubModal(false)}
                   className="flex-1 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   type="submit"
                   className="flex-1 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
                 >
@@ -407,8 +408,8 @@ export default function ClubFilesManagment() {
             }}>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Club Name</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   name="clubName"
                   defaultValue={selectedClub.name}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
@@ -417,7 +418,7 @@ export default function ClubFilesManagment() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
-                <select 
+                <select
                   name="clubCategory"
                   defaultValue={selectedClub.category}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
@@ -431,7 +432,7 @@ export default function ClubFilesManagment() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                <textarea 
+                <textarea
                   name="clubDescription"
                   defaultValue={selectedClub.description}
                   rows="3"
@@ -439,14 +440,14 @@ export default function ClubFilesManagment() {
                 ></textarea>
               </div>
               <div className="flex space-x-3 pt-4">
-                <button 
+                <button
                   type="button"
                   onClick={() => setShowEditClubModal(false)}
                   className="flex-1 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   type="submit"
                   className="flex-1 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
                 >
@@ -474,8 +475,8 @@ export default function ClubFilesManagment() {
             }}>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">File Name</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   name="fileName"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   placeholder="Enter file name"
@@ -484,8 +485,8 @@ export default function ClubFilesManagment() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">File URL</label>
-                <input 
-                  type="url" 
+                <input
+                  type="url"
                   name="fileUrl"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   placeholder="Enter file URL"
@@ -494,7 +495,7 @@ export default function ClubFilesManagment() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">File Type</label>
-                <select 
+                <select
                   name="fileType"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   required
@@ -505,14 +506,14 @@ export default function ClubFilesManagment() {
                 </select>
               </div>
               <div className="flex space-x-3 pt-4">
-                <button 
+                <button
                   type="button"
                   onClick={() => setShowAddFileModal(false)}
                   className="flex-1 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   type="submit"
                   className="flex-1 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
                 >

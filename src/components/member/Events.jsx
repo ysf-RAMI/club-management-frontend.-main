@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux"
 import { fetchEvents } from "../../app/eventSlice"
 import Loader from "../common/UI/Loader"
 import { useNavigate } from "react-router-dom"
+import { API_BASE_URL } from '../../config/api'
 
 export default function Events() {
     const dispatch = useDispatch()
@@ -92,7 +93,7 @@ export default function Events() {
                 {/* Event Image */}
                 <div className="relative overflow-hidden h-48">
                     <img
-                        src={event.image || '/img/Club1.png'}
+                        src={event.image ? `${API_BASE_URL}${event.image}` : '/img/Club1.png'}
                         alt={event.title}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                         onError={(e) => {

@@ -36,6 +36,7 @@ export default function EventManagement() {
   const [filterStatus, setFilterStatus] = useState('');
   const [showCreateEventModal, setShowCreateEventModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [eventToDelete, setEventToDelete] = useState(null);
 
   useEffect(() => {
     dispatch(fetchClubs());
@@ -55,7 +56,10 @@ export default function EventManagement() {
           club.users &&
           club.users.some((user) => user.id === meId && user.pivot.role === 'admin-member'),
       );
-      setMyClub(foundClub);
+
+      if (foundClub) {
+        setMyClub(foundClub);
+      }
     }
   }, [clubs, meId]);
 
@@ -87,21 +91,113 @@ export default function EventManagement() {
   };
 
   // Handle create event
-  const handleCreateEvent = (formData) => {
-    dispatch(addEvents(formData));
-    setShowCreateEventModal(false);
+  const handleCreateEvent = async (formData) => {
+    console.log('=== CREATE EVENT STARTED ===');
+    try {
+      // Log FormData contents
+      console.log('FormData contents:');
+      for (let [key, value] of formData.entries()) {
+        if (value instanceof File) {
+          console.log(`${key}:`, {
+            name: value.name,
+            type: value.type,
+            size: value.size,
+            lastModified: value.lastModified
+          });
+        } else {
+          console.log(`${key}:`, value);
+        }
+      }
+
+      // Validate image if present
+      const imageFile = formData.get('image');
+      console.log('Image file validation:', {
+        hasImage: !!imageFile,
+        imageSize: imageFile?.size || 0,
+        imageType: imageFile?.type || 'none'
+      });
+
+      if (imageFile && imageFile.size > 0) {
+        // Validate file type
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+        if (!validTypes.includes(imageFile.type)) {
+          console.error('Invalid file type:', imageFile.type);
+          toast.error('Please upload a valid image file (JPEG, PNG, or GIF)');
+          return;
+        }
+        console.log('✓ File type valid');
+
+        // Validate file size (max 5MB)
+        if (imageFile.size > 5 * 1024 * 1024) {
+          console.error('File too large:', imageFile.size, 'bytes');
+          toast.error('Image size should be less than 5MB');
+          return;
+        }
+        console.log('✓ File size valid');
+      }
+
+      console.log('Dispatching addEvents action...');
+      const result = await dispatch(addEvents(formData)).unwrap();
+      console.log('✓ Event created successfully:', result);
+
+
+      setShowCreateEventModal(false);
+
+      console.log('Refreshing events list...');
+      dispatch(fetchEvents()); // Refresh events list
+      console.log('=== CREATE EVENT COMPLETED ===');
+    } catch (error) {
+      console.error('=== CREATE EVENT FAILED ===');
+      console.error('Error type:', error?.name);
+      console.error('Error message:', error?.message);
+      console.error('Error details:', error);
+      console.error('Full error object:', JSON.stringify(error, null, 2));
+      toast.error(error?.message || 'Failed to create event');
+    }
   };
 
   // Handle edit event
-  const handleEditEvent = (eventId, formData) => {
-    dispatch(updateEvents({ eventId, eventData: formData }));
-    setSelectedEvent(null);
+  const handleEditEvent = async (eventId, formData) => {
+    try {
+      // Validate image if present
+      const imageFile = formData.get('image');
+
+      if (imageFile && imageFile.size > 0) {
+        // Validate file type
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+        if (!validTypes.includes(imageFile.type)) {
+          toast.error('Please upload a valid image file (JPEG, PNG, or GIF)');
+          return;
+        }
+
+        // Validate file size (max 5MB)
+        if (imageFile.size > 5 * 1024 * 1024) {
+          toast.error('Image size should be less than 5MB');
+          return;
+        }
+      }
+
+      const result = await dispatch(updateEvents({ eventId, eventData: formData })).unwrap();
+
+
+      setSelectedEvent(null);
+
+      dispatch(fetchEvents()); // Refresh events list
+    } catch (error) {
+      toast.error(error?.message || 'Failed to update event');
+    }
   };
 
   // Handle delete event
-  const handleDeleteEvent = (eventId) => {
-    if (window.confirm('Are you sure you want to delete this event?')) {
-      dispatch(deleteEvents(eventId));
+  const handleDeleteEvent = async () => {
+    if (!eventToDelete) return;
+
+    try {
+      await dispatch(deleteEvents(eventToDelete.id)).unwrap();
+      dispatch(fetchEvents());
+      setEventToDelete(null);
+    } catch (error) {
+      toast.error(error?.message || 'Failed to delete event');
     }
   };
 
@@ -235,7 +331,7 @@ export default function EventManagement() {
                       <div className="flex-shrink-0 h-10 w-10">
                         <img
                           className="h-10 w-10 rounded-full object-cover"
-                          src={API_BASE_URL + '/' + event.image}
+                          src={API_BASE_URL + event.image}
                           alt={event.title || event.name}
                           onError={(e) => {
                             e.target.src = '/img/event1.jpg';
@@ -285,7 +381,7 @@ export default function EventManagement() {
                         <FontAwesomeIcon icon={faEdit} />
                       </button>
                       <button
-                        onClick={() => handleDeleteEvent(event.id)}
+                        onClick={() => setEventToDelete(event)}
                         className="text-red-600 hover:text-red-900"
                         title="Delete event"
                       >
@@ -332,14 +428,51 @@ export default function EventManagement() {
             <form
               className="space-y-4"
               onSubmit={(e) => {
+                console.log('=== CREATE FORM SUBMITTED ===');
                 e.preventDefault();
 
-                const formData = new FormData(e.target);
+                console.log('Form target:', e.target);
+                console.log('My Club ID:', myClub?.id);
+
+                const formData = new FormData();
+
+                // Append all form fields with logging
+                const title = e.target.title.value;
+                const date = e.target.date.value;
+                const location = e.target.location.value;
+                const maxParticipants = e.target.max_participants.value;
+                const description = e.target.description?.value || '';
+                const imageFile = e.target.image.files[0];
+
+                console.log('Form values:', {
+                  title,
+                  date,
+                  location,
+                  maxParticipants,
+                  description,
+                  hasImage: !!imageFile,
+                  imageName: imageFile?.name
+                });
+
+                formData.append('title', title);
+                formData.append('date', date);
+                formData.append('location', location);
+                formData.append('max_participants', maxParticipants);
                 formData.append('club_id', myClub.id);
-                if (e.target.image.files[0]) {
-                  formData.append('image', e.target.image.files[0]);
+
+                // Add description if field exists
+                if (description) {
+                  formData.append('description', description);
+                  console.log('✓ Description added');
                 }
 
+                // Add image if selected
+                if (imageFile) {
+                  formData.append('image', imageFile);
+                  console.log('✓ Image added:', imageFile.name);
+                }
+
+                console.log('Calling handleCreateEvent...');
                 handleCreateEvent(formData);
               }}
             >
@@ -358,13 +491,8 @@ export default function EventManagement() {
                   Date and Time
                 </label>
                 <input
-                  type="datetime"
+                  type="datetime-local"
                   name="date"
-                  defaultValue={
-                    selectedEvent && selectedEvent.date
-                      ? new Date(selectedEvent.date).toISOString().slice(0, 16)
-                      : ''
-                  }
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                   required
                 />
@@ -380,6 +508,15 @@ export default function EventManagement() {
                 />
               </div>
               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                <textarea
+                  name="description"
+                  rows="3"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  placeholder="Enter event description"
+                ></textarea>
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Max Participants
                 </label>
@@ -393,7 +530,10 @@ export default function EventManagement() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Event Image</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Event Image
+                  <span className="text-xs text-gray-500 ml-2">(Max 5MB, JPEG/PNG/GIF)</span>
+                </label>
                 <input
                   type="file"
                   name="image"
@@ -430,11 +570,35 @@ export default function EventManagement() {
               className="space-y-4"
               onSubmit={(e) => {
                 e.preventDefault();
-                const formData = new FormData(e.target);
+
+                const formData = new FormData();
+
+                // Collect form values
+                const title = e.target.title.value;
+                const date = e.target.date.value;
+                const location = e.target.location.value;
+                const maxParticipants = e.target.max_participants.value;
+                const description = e.target.description?.value || '';
+                const imageFile = e.target.image.files[0];
+
+                // Append all form fields
+                formData.append('title', title);
+                formData.append('date', date);
+                formData.append('location', location);
+                formData.append('max_participants', maxParticipants);
                 formData.append('club_id', selectedEvent.club_id);
-                if (e.target.image.files[0]) {
-                  formData.append('image', e.target.image.files[0]);
+                formData.append('_method', 'PUT'); // Laravel requirement for updates
+
+                // Add description if field exists
+                if (description) {
+                  formData.append('description', description);
                 }
+
+                // Add image if selected
+                if (imageFile) {
+                  formData.append('image', imageFile);
+                }
+
                 handleEditEvent(selectedEvent.id, formData);
               }}
             >
@@ -453,7 +617,7 @@ export default function EventManagement() {
                   Date and Time
                 </label>
                 <input
-                  type="datetime"
+                  type="datetime-local"
                   name="date"
                   defaultValue={
                     selectedEvent.date
@@ -476,6 +640,16 @@ export default function EventManagement() {
                 />
               </div>
               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                <textarea
+                  name="description"
+                  rows="3"
+                  defaultValue={selectedEvent.description || ''}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  placeholder="Enter event description"
+                ></textarea>
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Max Participants
                 </label>
@@ -490,25 +664,25 @@ export default function EventManagement() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Event Image</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Event Image
+                  <span className="text-xs text-gray-500 ml-2">(Max 5MB, JPEG/PNG/GIF - leave empty to keep current)</span>
+                </label>
+                {selectedEvent.image && (
+                  <div className="mb-2">
+                    <img
+                      src={`${API_BASE_URL}${selectedEvent.image}`}
+                      alt="Current event"
+                      className="w-20 h-20 object-cover rounded-lg"
+                    />
+                  </div>
+                )}
                 <input
                   type="file"
                   name="image"
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/jpg,image/gif"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                 />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Event Description
-                </label>
-                <textarea
-                  name="description"
-                  rows="3"
-                  defaultValue={selectedEvent.description}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                  placeholder="Enter event description"
-                ></textarea>
               </div>
               <div className="flex space-x-3 pt-4">
                 <button
@@ -526,6 +700,39 @@ export default function EventManagement() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {eventToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md">
+            <div className="text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                <FontAwesomeIcon icon={faExclamationTriangle} className="h-6 w-6 text-red-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Delete Event</h3>
+              <p className="text-sm text-gray-500 mb-6">
+                Are you sure you want to delete "<span className="font-medium text-gray-900">{eventToDelete.title || eventToDelete.name}</span>"? This action cannot be undone.
+              </p>
+              <div className="flex space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setEventToDelete(null)}
+                  className="flex-1 bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDeleteEvent}
+                  className="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors font-medium"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

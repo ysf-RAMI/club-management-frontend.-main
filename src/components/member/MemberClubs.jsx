@@ -12,6 +12,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { fetchClubs } from '../../app/clubSlice';
 import Header from '../common/Header';
 import Loader from '../common/UI/Loader';
+import { API_BASE_URL } from '../../config/api';
 
 export default function MemberClubs({ onLinkClick }) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -135,7 +136,7 @@ export default function MemberClubs({ onLinkClick }) {
                 {/* Club Image */}
                 <div className="relative overflow-hidden h-48">
                   <img
-                    src={club.image || '/img/Club1.png'}
+                    src={club.image ? `${API_BASE_URL}${club.image}` : '/img/Club1.png'}
                     alt={club.name}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     onError={(e) => {

@@ -1,5 +1,8 @@
 import { useState, useContext, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { AuthContext } from '../../../src/contexts/AuthContext';
+import { updateProfile, updatePassword } from '../../app/userSlice';
+import { toast } from 'react-toastify';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Loader from './UI/Loader';
 import {
@@ -20,19 +23,28 @@ import {
   faLock,
   faCheckCircle,
 } from '@fortawesome/free-solid-svg-icons';
+import { API_BASE_URL } from '../../config/api';
 
 export default function Profile() {
-  const { user } = useContext(AuthContext);
+  const dispatch = useDispatch();
+  const { user, refreshUser } = useContext(AuthContext);
+  const { loading: updateLoading, error } = useSelector((state) => state.user);
   const [activeTab, setActiveTab] = useState('personal');
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [imageFile, setImageFile] = useState(null);
   const [formData, setFormData] = useState({
     ...user,
     firstName: user.name ? user.name.split(' ')[0] : '',
     lastName: user.name ? user.name.split(' ').slice(1).join(' ') : '',
-    profilePicture: user.image || '/img/Club1.png',
+    profilePicture: user.image ? `${API_BASE_URL}${user.image}` : '/img/Club1.png',
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
 
   useEffect(() => {
     // Simulate loading user data
@@ -50,17 +62,149 @@ export default function Profile() {
     }));
   };
 
-  const handleSave = () => {
-    setIsEditing(false);
-    // Here you would typically save to API
-    console.log('Saving profile data:', formData);
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please select a valid image file');
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Image size should be less than 5MB');
+        return;
+      }
+
+      setImageFile(file);
+
+      // Preview image
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData((prev) => ({
+          ...prev,
+          profilePicture: reader.result,
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      // Create FormData object
+      const formDataToSend = new FormData();
+
+      // Add user ID
+      formDataToSend.append('id', user.id);
+
+      // Add name (combine firstName and lastName)
+      const fullName = `${formData.firstName} ${formData.lastName}`.trim();
+      if (fullName) {
+        formDataToSend.append('name', fullName);
+      }
+
+      // Add email if changed
+      if (formData.email && formData.email !== user.email) {
+        formDataToSend.append('email', formData.email);
+      }
+
+      // Add department if changed
+      if (formData.department && formData.department !== user.department) {
+        formDataToSend.append('department', formData.department);
+      }
+
+      // Add image file if selected
+      if (imageFile) {
+        formDataToSend.append('image', imageFile);
+      }
+
+      // Add password if provided
+      if (formData.password) {
+        formDataToSend.append('password', formData.password);
+        formDataToSend.append('password_confirmation', formData.confirmPassword);
+      }
+
+      // Add _method for Laravel
+      formDataToSend.append('_method', 'PUT');
+
+      // Dispatch update action
+      const result = await dispatch(updateProfile(formDataToSend)).unwrap();
+
+      // Success
+      toast.success('Profile updated successfully!');
+      setIsEditing(false);
+      setImageFile(null);
+
+      // Refresh user context
+      if (refreshUser) {
+        await refreshUser();
+      }
+    } catch (error) {
+      toast.error(error.message || 'Failed to update profile');
+      console.error('Profile update error:', error);
+    }
   };
 
   const handleCancel = () => {
     setIsEditing(false);
+    setImageFile(null);
     // Reset form data to original values
-    setFormData(user);
+    setFormData({
+      ...user,
+      firstName: user.name ? user.name.split(' ')[0] : '',
+      lastName: user.name ? user.name.split(' ').slice(1).join(' ') : '',
+      profilePicture: user.image ? `${API_BASE_URL}${user.image}` : '/img/Club1.png',
+    });
   };
+
+  const handlePasswordUpdate = async () => {
+    // Validation
+    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+      toast.error('Please fill in all password fields');
+      return;
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast.error('New passwords do not match');
+      return;
+    }
+
+    if (passwordData.newPassword.length < 8) {
+      toast.error('Password must be at least 8 characters long');
+      return;
+    }
+
+    try {
+      await dispatch(updatePassword({
+        userId: user.id,
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
+      })).unwrap();
+
+      toast.success('Password updated successfully!');
+
+      // Reset password fields
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: '',
+      });
+    } catch (error) {
+      toast.error(error.message || 'Failed to update password');
+      console.error('Password update error:', error);
+    }
+  };
+
+  const handlePasswordInputChange = (e) => {
+    const { name, value } = e.target;
+    setPasswordData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
 
   const tabs = [
     { id: 'personal', label: 'Personal Information', icon: faUser },
@@ -116,9 +260,23 @@ export default function Profile() {
                     alt="Profile"
                     className="w-24 h-24 rounded-2xl object-cover border-4 border-white shadow-xl"
                   />
-                  <button className="absolute bottom-0 right-0 bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-2.5 rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-all duration-300 shadow-lg cursor-pointer">
-                    <FontAwesomeIcon icon={faCamera} className="text-sm" />
-                  </button>
+                  {isEditing && (
+                    <>
+                      <input
+                        type="file"
+                        id="profileImageInput"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        className="hidden"
+                      />
+                      <label
+                        htmlFor="profileImageInput"
+                        className="absolute bottom-0 right-0 bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-2.5 rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-all duration-300 shadow-lg cursor-pointer"
+                      >
+                        <FontAwesomeIcon icon={faCamera} className="text-sm" />
+                      </label>
+                    </>
+                  )}
                 </div>
               </div>
               <div className="text-center">
@@ -241,17 +399,31 @@ export default function Profile() {
                   <div className="flex justify-end space-x-4 mt-8 pt-6 border-t-2 border-gray-100">
                     <button
                       onClick={handleCancel}
-                      className="px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 text-sm cursor-pointer"
+                      disabled={updateLoading}
+                      className="px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 text-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <FontAwesomeIcon icon={faTimes} className="mr-2" />
                       Cancel
                     </button>
                     <button
                       onClick={handleSave}
-                      className="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-all duration-300 text-sm cursor-pointer shadow-lg"
+                      disabled={updateLoading}
+                      className="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-all duration-300 text-sm cursor-pointer shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
                     >
-                      <FontAwesomeIcon icon={faSave} className="mr-2" />
-                      Save Changes
+                      {updateLoading ? (
+                        <>
+                          <svg className="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <FontAwesomeIcon icon={faSave} className="mr-2" />
+                          Save Changes
+                        </>
+                      )}
                     </button>
                   </div>
                 )}
@@ -279,12 +451,38 @@ export default function Profile() {
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                           <FontAwesomeIcon icon={faLock} className="text-purple-600" />
+                          Current Password
+                        </label>
+                        <div className="relative">
+                          <input
+                            type={showPassword ? "text" : "password"}
+                            name="currentPassword"
+                            value={passwordData.currentPassword}
+                            onChange={handlePasswordInputChange}
+                            placeholder="Enter current password"
+                            className="w-full px-4 py-3 pr-12 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 text-sm font-medium transition-all duration-200"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-purple-600 transition-colors duration-200"
+                          >
+                            <FontAwesomeIcon icon={showPassword ? faEye : faEyeSlash} />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                          <FontAwesomeIcon icon={faLock} className="text-purple-600" />
                           New Password
                         </label>
                         <div className="relative">
                           <input
                             type={showPassword ? "text" : "password"}
                             name="newPassword"
+                            value={passwordData.newPassword}
+                            onChange={handlePasswordInputChange}
                             placeholder="Enter new password"
                             className="w-full px-4 py-3 pr-12 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 text-sm font-medium transition-all duration-200"
                           />
@@ -307,6 +505,8 @@ export default function Profile() {
                           <input
                             type={showPassword ? "text" : "password"}
                             name="confirmPassword"
+                            value={passwordData.confirmPassword}
+                            onChange={handlePasswordInputChange}
                             placeholder="Confirm new password"
                             className="w-full px-4 py-3 pr-12 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 text-sm font-medium transition-all duration-200"
                           />
@@ -322,11 +522,12 @@ export default function Profile() {
                     </div>
 
                     <button
-                      onClick={handleSave}
-                      className="w-full mt-6 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-all duration-300 text-sm cursor-pointer shadow-lg flex items-center justify-center gap-2"
+                      onClick={handlePasswordUpdate}
+                      disabled={updateLoading}
+                      className="w-full mt-6 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-all duration-300 text-sm cursor-pointer shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <FontAwesomeIcon icon={faSave} />
-                      Update Password
+                      {updateLoading ? 'Updating...' : 'Update Password'}
                     </button>
                   </div>
 

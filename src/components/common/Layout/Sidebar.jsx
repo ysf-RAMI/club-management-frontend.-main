@@ -20,21 +20,30 @@ export default function Sidebar({ onLinkClick, activeContent }) {
   const [activeLink, setActiveLink] = useState(activeContent || 'Dashboard');
   const [userRole, setUserRole] = useState('');
   const [hasClubs, setHasClubs] = useState(false);
-  const { Logout } = useAuth();
+  const { Logout, role } = useAuth();
 
   useEffect(() => {
-    const url = window.location.pathname;
-    if (url.includes('/student')) {
-      setUserRole('student');
-    } else if (url.includes('/adminMember')) {
-      setUserRole('admin-member');
-    } else if (url.includes('/member')) {
-      setUserRole('member');
-      setHasClubs(true); // Members always have clubs
-    } else if (url.includes('/admin')) {
-      setUserRole('admin');
+    // Use role from auth context instead of URL parsing
+    if (role) {
+      setUserRole(role);
+      if (role === 'member') {
+        setHasClubs(true);
+      }
+    } else {
+      // Fallback to URL parsing if role not in context
+      const url = window.location.pathname;
+      if (url.includes('/student')) {
+        setUserRole('student');
+      } else if (url.includes('/adminMember')) {
+        setUserRole('admin-member');
+      } else if (url.includes('/member')) {
+        setUserRole('member');
+        setHasClubs(true);
+      } else if (url.includes('/admin')) {
+        setUserRole('admin');
+      }
     }
-  }, [window.location.pathname]);
+  }, [role, window.location.pathname]);
 
   useEffect(() => {
     setActiveLink(activeContent);
@@ -163,7 +172,7 @@ export default function Sidebar({ onLinkClick, activeContent }) {
             >
               <FontAwesomeIcon icon={faClipboardList} className="text-1xl" />{' '}
               <span className="ml-2 text-sm font-medium">Club Management</span>
-            </a>{' '}
+            </a>
             <a
               href="#"
               className={
@@ -198,9 +207,8 @@ export default function Sidebar({ onLinkClick, activeContent }) {
               onClick={() => handleLinkClick('Events Registration')}
             >
               <FontAwesomeIcon icon={faHistory} className="text-1xl" />{' '}
-              <span className="ml-2 text-sm font-medium">Events </span>
+              <span className="ml-2 text-sm font-medium">Events</span>
             </a>
-
           </>
         )}
 

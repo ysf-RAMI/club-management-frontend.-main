@@ -5,101 +5,119 @@ import { toast } from 'react-toastify';
 
 
 
-  export const addEvents = createAsyncThunk(
-    'events/addEvents',
-    async (eventData, { rejectWithValue }) => {
-      const token = localStorage.getItem('access_token');
-      if (!token) {
-        return rejectWithValue('User not authenticated');
+export const addEvents = createAsyncThunk(
+  'events/addEvents',
+  async (eventData, { rejectWithValue }) => {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      return rejectWithValue('User not authenticated');
+    }
+    try {
+      console.log('Event Data (raw FormData object):', eventData);
+      for (let [key, value] of eventData.entries()) {
+        console.log(key, value);
       }
-      try {
-        console.log('Event Data (raw FormData object):', eventData);
-        for (let [key, value] of eventData.entries()) {
-          console.log(key, value);
-        }
-        console.log('Request Headers:', { Authorization: `Bearer ${token}` });
-        const response = await fetch(`${API_BASE_URL}/api/addEvent`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: eventData,
-        });
-        if (!response.ok) {
-          const errorData = await response.json();
-          return rejectWithValue(errorData);
-        }
-        const data = await response.json();
-        toast.success('Event added successfully');
-        return data;
-      } catch (error) {
-        return rejectWithValue(error.message);
-      }
-    },
-  );
-  export const updateEvents = createAsyncThunk(
-    'events/updateEvents',
-    async ({ eventId, eventData }, { rejectWithValue }) => {
-      const token = localStorage.getItem('access_token');
-      if (!token) {
-        return rejectWithValue('User not authenticated');
-      }
-      try {
-        console.log('Updating event with ID:', eventId);
-        console.log('Event Data (raw FormData object) in updateEvents thunk:', eventData);
-        for (let [key, value] of eventData.entries()) {
-          console.log('FormData entry:', key, value);
-        }
-        eventData.append('_method', 'PUT');
-        console.log('Request Headers for Update:', { Authorization: `Bearer ${token}` });
-        const response = await fetch(`${API_BASE_URL}/api/events/${eventId}`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: eventData,
+      console.log('Request Headers:', { Authorization: `Bearer ${token}` });
+      console.log('API Endpoint:', `${API_BASE_URL}/api/events`);
 
-        });
-        if (!response.ok) {
-          const errorData = await response.json();
-          console.error('Update Event API Error:', errorData);
-          return rejectWithValue(errorData);
+      const response = await fetch(`${API_BASE_URL}/api/events`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: eventData,
+      }); console.log('Response Status:', response.status);
+      console.log('Response OK:', response.ok);
+      console.log('Response Headers:', {
+        contentType: response.headers.get('content-type'),
+        contentLength: response.headers.get('content-length')
+      });
+
+      if (!response.ok) {
+        // Try to get the response text first to see what we're dealing with
+        const responseText = await response.text();
+        console.error('=== ERROR RESPONSE ===');
+        console.error('Status:', response.status);
+        console.error('Response Text (first 500 chars):', responseText.substring(0, 500));
+
+        // Try to parse as JSON if possible
+        try {
+          const errorData = JSON.parse(responseText);
+          console.error('Parsed Error Data:', errorData);
+          return rejectWithValue(errorData.message || errorData);
+        } catch (parseError) {
+          console.error('Could not parse error response as JSON');
+          return rejectWithValue(`Server error (${response.status}): ${responseText.substring(0, 200)}`);
         }
-        const data = await response.json();
-        console.log('Update Event API Response:', data);
-        toast.success('Event updated successfully');
-        return data;
-      } catch (error) {
-        console.error('Update Event Thunk Error:', error);
-        return rejectWithValue(error.message);
       }
-    },
-  );
-  export const deleteEvents = createAsyncThunk(
-    'events/deleteEvents',
-    async (eventId, { rejectWithValue }) => {
-      const token = localStorage.getItem('access_token');
-      if (!token) {
-        return rejectWithValue('User not authenticated');
+
+      const data = await response.json();
+      console.log('✓ Success Response:', data);
+      toast.success('Event added successfully');
+      return data;
+    } catch (error) {
+      console.error('=== FETCH EXCEPTION ===');
+      console.error('Error Name:', error.name);
+      console.error('Error Message:', error.message);
+      console.error('Error Stack:', error.stack);
+      return rejectWithValue(error.message);
+    }
+  },
+);
+export const updateEvents = createAsyncThunk(
+  'events/updateEvents',
+  async ({ eventId, eventData }, { rejectWithValue }) => {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      return rejectWithValue('User not authenticated');
+    }
+    try {
+      eventData.append('_method', 'PUT');
+      const response = await fetch(`${API_BASE_URL}/api/events/${eventId}`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: eventData,
+
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        return rejectWithValue(errorData);
       }
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/events/${eventId}`, {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (!response.ok) {
-          const errorData = await response.json();
-          return rejectWithValue(errorData);
-        }
-        toast.success('Event deleted successfully');
-        return eventId; // Return the ID of the deleted event
-      } catch (error) {
-        return rejectWithValue(error.message);
+      const data = await response.json();
+      toast.success('Event updated successfully');
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  },
+);
+export const deleteEvents = createAsyncThunk(
+  'events/deleteEvents',
+  async (eventId, { rejectWithValue }) => {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      return rejectWithValue('User not authenticated');
+    }
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/events/${eventId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        return rejectWithValue(errorData);
       }
-    },
-  );
+      toast.success('Event deleted successfully');
+      return eventId; // Return the ID of the deleted event
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  },
+);
 
 
 export const fetchEvents = createAsyncThunk('events/fetchEvents', async () => {

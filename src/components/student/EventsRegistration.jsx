@@ -7,6 +7,7 @@ import { addRegisteredEvent, fetchUserRegisteredEvents } from '../../app/userSli
 import { fetchClubs } from '../../app/clubSlice';
 import { AuthContext } from '../../contexts/AuthContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { API_BASE_URL } from '../../config/api';
 import {
   faCalendarAlt,
   faMapMarkerAlt,
@@ -165,7 +166,6 @@ export default function EventsRegistration() {
           await dispatch(fetchUserRegisteredEvents(userId));
         }
 
-        toast.success('Successfully registered for the event!');
       } else if (registerForEvent.rejected.match(result)) {
         toast.error(result.payload || 'Failed to register for the event.');
       }
@@ -209,7 +209,7 @@ export default function EventsRegistration() {
       event.club?.category ||
       event.category ||
       'General';
-    const eventImage = event.image || '/vite.svg';
+    const eventImage = event.image ? `${API_BASE_URL}${event.image}` : '/vite.svg';
 
     return (
       <div className="group bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col border border-gray-100 hover:border-purple-200 transform hover:-translate-y-1">

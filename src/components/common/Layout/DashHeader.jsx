@@ -8,6 +8,7 @@ import {
   faCog,
   faChevronDown,
 } from '@fortawesome/free-solid-svg-icons';
+import { API_BASE_URL } from '../../../config/api';
 
 export default function DashHeader({ onLinkClick }) {
   const { user, Logout, role } = useAuth();
@@ -81,7 +82,7 @@ export default function DashHeader({ onLinkClick }) {
                 <div className="relative">
                   {user?.image ? (
                     <img
-                      src={user.image}
+                      src={`${API_BASE_URL}${user.image}`}
                       alt={user?.name}
                       className="w-10 h-10 rounded-full object-cover border-2 border-purple-200 group-hover:border-purple-400 transition-colors duration-200"
                     />

@@ -16,12 +16,11 @@ import {
   faUserPlus,
   faUserMinus,
 } from '@fortawesome/free-solid-svg-icons';
+import { API_BASE_URL } from '../../config/api';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchClubs, approveJoinClub } from '../../app/clubSlice';
 import { toast } from 'react-toastify';
-import Loader from '../common/UI/Loader';
-
-export default function ClubManagement() {
+import Loader from '../common/UI/Loader'; export default function ClubManagement() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [selectedMember, setSelectedMember] = useState(null);
@@ -188,7 +187,7 @@ export default function ClubManagement() {
       <div className="bg-white p-6 rounded-xl shadow-md mb-8">
         <div className="flex items-center space-x-6">
           <img
-            src={myClub.image || '/img/Club1.png'}
+            src={myClub.image ? `${API_BASE_URL}${myClub.image}` : '/img/Club1.png'}
             alt={myClub.name}
             className="w-20 h-20 rounded-lg object-cover"
           />
@@ -249,7 +248,7 @@ export default function ClubManagement() {
               </select>
             </div>
 
-           
+
           </div>
         </div>
       </div>
@@ -370,7 +369,7 @@ export default function ClubManagement() {
                             <FontAwesomeIcon icon={faUserMinus} />
                           </button>
                         )}
-                        
+
                       </div>
                     </td>
                   </tr>
@@ -390,7 +389,7 @@ export default function ClubManagement() {
         )}
       </div>
 
-    
+
     </main>
   );
 }

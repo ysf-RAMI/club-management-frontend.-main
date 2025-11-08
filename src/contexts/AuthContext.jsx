@@ -71,6 +71,34 @@ const AuthContextProvider = ({ children }) => {
     }
   };
 
+  const refreshUser = async () => {
+    try {
+      const accessToken = localStorage.getItem('access_token');
+      const userId = user?.id;
+      if (!accessToken || !userId) return;
+
+      const response = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to refresh user data');
+      }
+
+      const userData = await response.json();
+      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
+      return userData;
+    } catch (error) {
+      console.error('Error refreshing user:', error);
+      return null;
+    }
+  };
+
   const checkRoleChange = async () => {
     try {
       const accessToken = localStorage.getItem('access_token');
@@ -349,6 +377,7 @@ const AuthContextProvider = ({ children }) => {
         Logout,
         Register,
         Refresh,
+        refreshUser,
         checkRoleChange,
         isAuthenticated,
         loading,

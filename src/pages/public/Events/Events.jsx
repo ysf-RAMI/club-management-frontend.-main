@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchEvents, searchEvents, filterByClub, sortEvents, clearEventFilters } from '../../../app/eventSlice';
-
+import { API_BASE_URL } from '../../../config/api';
 import Loader from '../../../components/common/UI/Loader';
 import { FaCalendarAlt, FaClock, FaMapMarkerAlt, FaUsers } from 'react-icons/fa';
 
@@ -129,7 +129,7 @@ export default function Events() {
                   className="bg-white rounded-lg shadow-sm overflow-hidden flex flex-col"
                 >
                   <img
-                    src={event.image || '/img/Hero.jpg'}
+                    src={event.image ? `${API_BASE_URL}${event.image}` : '/img/Hero.jpg'}
                     alt={event.title}
                     className="w-full h-48 object-cover"
                   />

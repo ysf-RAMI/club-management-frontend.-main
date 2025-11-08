@@ -7,6 +7,7 @@ import { fetchClubById } from '../../../app/clubSlice';
 import Loader from '../../../components/common/UI/Loader';
 import { toast } from 'react-toastify';
 import { AuthContext } from '../../../contexts/AuthContext';
+import { API_BASE_URL } from '../../../config/api';
 
 export default function EventDetails() {
   const { id } = useParams();
@@ -125,7 +126,7 @@ export default function EventDetails() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="relative bg-white shadow-md">
           <img
-            src={event.image || '/img/Hero.jpg'}
+            src={event.image ? `${API_BASE_URL}${event.image}` : '/img/Hero.jpg'}
             alt={event.title}
             className="w-full h-96 object-cover"
           />
@@ -374,7 +375,7 @@ export default function EventDetails() {
                 <div className="flex items-center space-x-3 mb-4">
                   <img
                     className="h-12 w-12 rounded-full object-cover"
-                    src={club.image || '/img/Club1.png'}
+                    src={club.image ? `${API_BASE_URL}${club.image}` : '/img/Club1.png'}
                     alt="Club Logo"
                   />
                   <div>

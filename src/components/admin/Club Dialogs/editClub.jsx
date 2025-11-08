@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { API_BASE_URL } from '../../../config/api';
 
 export default function EditClubDialog({ open, onClose, onConfirm, club }) {
   const [clubData, setClubData] = useState({
@@ -8,7 +9,7 @@ export default function EditClubDialog({ open, onClose, onConfirm, club }) {
     max_members: '',
     image: null,
   });
-  const [imagePreview, setImagePreview] = useState(club?.image || '');
+  const [imagePreview, setImagePreview] = useState(club?.image ? `${API_BASE_URL}${club.image}` : '');
 
   useEffect(() => {
     if (club) {
@@ -19,7 +20,7 @@ export default function EditClubDialog({ open, onClose, onConfirm, club }) {
         max_members: club.max_members || '',
         image: null, // Image file itself is not set here, only its preview
       });
-      setImagePreview(club.image || '');
+      setImagePreview(club.image ? `${API_BASE_URL}${club.image}` : '');
     }
   }, [club]);
 

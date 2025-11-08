@@ -7,6 +7,7 @@ import Loader from '../common/UI/Loader';
 import { useNavigate } from 'react-router-dom';
 import { faEye, faGraduationCap, faPlus, faCalendarAlt, faUsers, faCheckCircle, faClipboardList, faClock } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { API_BASE_URL } from '../../config/api';
 
 export default function StdDashboard({ onLinkClick }) {
     const dispatch = useDispatch();
@@ -173,7 +174,7 @@ export default function StdDashboard({ onLinkClick }) {
                                             >
                                                 <div className="flex items-center gap-3">
                                                     <img
-                                                        src={club.image || '/img/Club1.png'}
+                                                        src={club.image ? `${API_BASE_URL}${club.image}` : '/img/Club1.png'}
                                                         alt={club.name}
                                                         className="h-11 w-11 rounded-lg object-cover ring-2 ring-purple-100 group-hover:ring-purple-300 transition-all duration-200"
                                                     />
@@ -270,7 +271,7 @@ export default function StdDashboard({ onLinkClick }) {
                                             >
                                                 <div className="flex items-center gap-3">
                                                     <img
-                                                        src={evt.image || '/img/Club1.png'}
+                                                        src={evt.image ? `${API_BASE_URL}${evt.image}` : '/img/Club1.png'}
                                                         alt={evt.title}
                                                         className="h-11 w-11 rounded-lg object-cover ring-2 ring-green-100 group-hover:ring-green-300 transition-all duration-200"
                                                     />
@@ -287,10 +288,10 @@ export default function StdDashboard({ onLinkClick }) {
                                                     {status && (
                                                         <span
                                                             className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 ${status === 'approved'
-                                                                    ? 'bg-green-100 text-green-800'
-                                                                    : status === 'pending'
-                                                                        ? 'bg-yellow-100 text-yellow-800'
-                                                                        : 'bg-red-100 text-red-800'
+                                                                ? 'bg-green-100 text-green-800'
+                                                                : status === 'pending'
+                                                                    ? 'bg-yellow-100 text-yellow-800'
+                                                                    : 'bg-red-100 text-red-800'
                                                                 }`}
                                                         >
                                                             {status === 'approved' && <FontAwesomeIcon icon={faCheckCircle} className="text-xs" />}
@@ -356,7 +357,7 @@ export default function StdDashboard({ onLinkClick }) {
                                             >
                                                 <div className="flex items-center gap-3">
                                                     <img
-                                                        src={event.image || '/img/Club1.png'}
+                                                        src={event.image ? `${API_BASE_URL}${event.image}` : '/img/Club1.png'}
                                                         alt={event.title}
                                                         className="h-11 w-11 rounded-lg object-cover ring-2 ring-indigo-100 group-hover:ring-indigo-300 transition-all duration-200"
                                                     />
