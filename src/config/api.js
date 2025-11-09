@@ -73,4 +73,4 @@ app.listen(3001, () => {
 // development so requests are made to relative paths (e.g. `/api/clubs`) and
 // Vite's proxy (configured in vite.config.js) will forward them to the backend.
 // Example in .env: VITE_API_BASE_URL=https://api.example.com
-export const API_BASE_URL = 'https://living-heddi-cmsbackend-6f6751c2.koyeb.app'
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://living-heddi-cmsbackend-6f6751c2.koyeb.app'
