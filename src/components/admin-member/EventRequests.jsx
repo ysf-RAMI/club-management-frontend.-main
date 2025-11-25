@@ -4,7 +4,7 @@ import { fetchClubs, fetchClubById } from '../../app/clubSlice';
 import { approveEventRegistration, fetchClubEventRequests } from '../../app/eventSlice';
 import { AuthContext } from '../../contexts/AuthContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUserCheck, faUserTimes, faEye } from '@fortawesome/free-solid-svg-icons';
+import { faUserCheck, faUserTimes, faEye, faSearch, faCalendarAlt } from '@fortawesome/free-solid-svg-icons';
 import Loader from '../common/UI/Loader';
 import { toast } from 'react-toastify';
 
@@ -16,6 +16,7 @@ export default function EventRequests() {
 
     const [myClub, setMyClub] = useState(null);
     const [pendingRegistrations, setPendingRegistrations] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
         dispatch(fetchClubs());
@@ -143,6 +144,8 @@ export default function EventRequests() {
         try {
             await dispatch(approveEventRegistration({ eventId, userId, status: 'approved' })).unwrap();
             toast.success('Registration approved');
+            // Remove from local state immediately
+            setPendingRegistrations(prev => prev.filter(reg => !(reg.event.id === eventId && reg.user.id === userId)));
             dispatch(fetchClubById(myClub.id));
         } catch (err) {
             toast.error(err || 'Failed to approve');
@@ -153,6 +156,8 @@ export default function EventRequests() {
         try {
             await dispatch(approveEventRegistration({ eventId, userId, status: 'rejected' })).unwrap();
             toast.success('Registration rejected');
+            // Remove from local state immediately
+            setPendingRegistrations(prev => prev.filter(reg => !(reg.event.id === eventId && reg.user.id === userId)));
             dispatch(fetchClubById(myClub.id));
         } catch (err) {
             toast.error(err || 'Failed to reject');
@@ -161,33 +166,150 @@ export default function EventRequests() {
 
     if (loading) return <Loader />;
 
+    // Filter requests based on search
+    const filteredRequests = pendingRegistrations.filter((reg) =>
+        reg.user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        reg.event.title?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     return (
-        <div className="min-h-screen bg-gray-50">
-            <div className="bg-white p-6 rounded-xl shadow-md mb-6">
-                <h2 className="text-2xl font-bold">Event Registration Requests</h2>
-                <p className="text-sm text-gray-500">Review and approve or reject event registration requests for your club's events.</p>
+        <main className="min-h-screen bg-gray-50 p-4 sm:p-6">
+            {/* Header */}
+            <header className="mb-8">
+                <div className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white p-8 rounded-xl shadow-lg">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h1 className="text-3xl font-bold mb-2">Event Registration Requests</h1>
+                            <p className="text-teal-100 text-lg">Review and manage pending event registration requests</p>
+                        </div>
+                        <FontAwesomeIcon icon={faCalendarAlt} className="text-white text-6xl opacity-30" />
+                    </div>
+                </div>
+            </header>
+
+            {/* Search Controls */}
+            <div className="bg-white p-6 rounded-xl shadow-md mb-8">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    <div className="flex-1 max-w-md">
+                        <div className="relative">
+                            <FontAwesomeIcon
+                                icon={faSearch}
+                                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"
+                            />
+                            <input
+                                type="text"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                                placeholder="Search by student name or event..."
+                            />
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-6">
-                {pendingRegistrations.length === 0 ? (
-                    <div className="bg-white p-6 rounded-xl shadow-md text-center text-gray-500">No pending event registrations.</div>
-                ) : (
-                    pendingRegistrations.map(({ event, user }) => (
-                        <div key={`${event.id}-${user.id}`} className="bg-white p-4 rounded-xl shadow-md flex items-center justify-between">
-                            <div>
-                                <div className="font-semibold">{user.name} <span className="text-xs text-gray-400">({user.email})</span></div>
-                                <div className="text-sm text-gray-500">Requested for: <span className="font-medium">{event.title}</span></div>
-                                <div className="text-xs text-gray-400">Requested: {new Date(user.pivot?.registered_at || user.pivot?.created_at || Date.now()).toLocaleString()}</div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <button onClick={() => handleApprove(event.id, user.id)} className="px-3 py-2 bg-green-100 text-green-800 rounded-md"><FontAwesomeIcon icon={faUserCheck} /></button>
-                                <button onClick={() => handleReject(event.id, user.id)} className="px-3 py-2 bg-red-100 text-red-800 rounded-md"><FontAwesomeIcon icon={faUserTimes} /></button>
-                                <a href={`/events/${event.id}`} className="px-3 py-2 bg-gray-100 text-gray-700 rounded-md"><FontAwesomeIcon icon={faEye} /></a>
-                            </div>
-                        </div>
-                    ))
+            {/* Requests List */}
+            <div className="bg-white rounded-xl shadow-md overflow-hidden">
+                <div className="px-6 py-4 border-b border-gray-200">
+                    <h3 className="text-lg font-semibold text-gray-800">
+                        Pending Requests ({filteredRequests.length})
+                    </h3>
+                </div>
+
+                <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                            <tr>
+                                <th
+                                    scope="col"
+                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                >
+                                    STUDENT NAME
+                                </th>
+                                <th
+                                    scope="col"
+                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                >
+                                    EVENT NAME
+                                </th>
+                                <th
+                                    scope="col"
+                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                >
+                                    REQUESTED DATE
+                                </th>
+                                <th
+                                    scope="col"
+                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                >
+                                    ACTIONS
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                            {filteredRequests.map((reg) => (
+                                <tr key={`${reg.event.id}-${reg.user.id}`} className="hover:bg-gray-50">
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <div className="text-sm font-medium text-gray-900">
+                                            {reg.user.name}
+                                        </div>
+                                        <div className="text-sm text-gray-500">
+                                            {reg.user.email}
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {reg.event.title}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {new Date(reg.pivot?.registered_at || reg.pivot?.created_at || Date.now()).toLocaleString()}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <div className="flex items-center space-x-2">
+                                            <button
+                                                onClick={() => handleApprove(reg.event.id, reg.user.id)}
+                                                className="text-green-600 hover:text-green-900"
+                                                title="Approve request"
+                                            >
+                                                <FontAwesomeIcon icon={faUserCheck} />
+                                            </button>
+                                            <button
+                                                onClick={() => handleReject(reg.event.id, reg.user.id)}
+                                                className="text-red-600 hover:text-red-900"
+                                                title="Reject request"
+                                            >
+                                                <FontAwesomeIcon icon={faUserTimes} />
+                                            </button>
+                                            <a
+                                                href={`/events/${reg.event.id}`}
+                                                rel="noopener noreferrer"
+                                                className="text-gray-600 hover:text-gray-900"
+                                                title="View event details"
+                                            >
+                                                <FontAwesomeIcon icon={faEye} />
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* Empty State */}
+                {filteredRequests.length === 0 && (
+                    <div className="text-center py-12">
+                        <FontAwesomeIcon icon={faCalendarAlt} className="text-gray-300 text-6xl mb-4" />
+                        <h3 className="text-xl font-medium text-gray-500 mb-2">
+                            {pendingRegistrations.length === 0 ? 'No pending requests' : 'No requests found'}
+                        </h3>
+                        <p className="text-gray-400">
+                            {pendingRegistrations.length === 0
+                                ? 'All requests have been processed'
+                                : 'Try adjusting your search'}
+                        </p>
+                    </div>
                 )}
             </div>
-        </div>
+        </main>
     );
 }

@@ -11,6 +11,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchAllUsers, makeAdmin } from '../../app/userSlice';
 import { fetchClubs } from '../../app/clubSlice';
+import { API_BASE_URL } from '../../config/api';
 
 export default function UserManagement() {
   const [selectedMember, setSelectedMember] = useState(null);
@@ -76,7 +77,7 @@ export default function UserManagement() {
               {selectedMember ? (
                 <>
                   <img
-                    src={selectedMember.avatar}
+                    src={API_BASE_URL + selectedMember.image}
                     alt={selectedMember.name}
                     className="w-8 h-8 rounded-full mr-3"
                   />
@@ -161,7 +162,7 @@ export default function UserManagement() {
                   <div className="flex items-center mb-4">
                     <img
                       className="w-16 h-16 rounded-full object-cover mr-4"
-                      src={member.avatar}
+                      src={API_BASE_URL + member.image}
                       alt={member.name}
                     />
                     <div>
