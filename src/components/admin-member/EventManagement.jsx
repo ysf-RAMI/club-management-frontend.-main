@@ -17,16 +17,16 @@ import {
   faImage,
 } from '@fortawesome/free-solid-svg-icons';
 import { useSelector, useDispatch } from 'react-redux';
-import { fetchClubs } from '../../app/clubSlice';
+import { fetchClubs, fetchClubById, removeEventFromCurrentClub } from '../../app/clubSlice';
 import { toast } from 'react-toastify';
 import Loader from '../common/UI/Loader';
-import { addEvents, deleteEvents, fetchEvents, updateEvents } from '../../app/eventSlice';
+import { deleteEvents, fetchEvents } from '../../app/eventSlice';
 import { API_BASE_URL } from '../../config/api';
 
 export default function EventManagement() {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.user);
-  const { clubs } = useSelector((state) => state.clubs);
+  const { clubs, currentClub } = useSelector((state) => state.clubs);
   const { events, loading, error } = useSelector((state) => state.events);
   const me = localStorage.getItem('user');
   const meId = JSON.parse(me)?.id;
@@ -58,10 +58,17 @@ export default function EventManagement() {
       );
 
       if (foundClub) {
-        setMyClub(foundClub);
+        // fetch detailed club (including events/pivots) so management views have full data
+        dispatch(fetchClubById(foundClub.id));
       }
     }
   }, [clubs, meId]);
+
+  useEffect(() => {
+    if (currentClub && currentClub.id) {
+      setMyClub(currentClub);
+    }
+  }, [currentClub]);
 
   // Filter events based on search and filters
   const filteredEvents = events.filter((event) => {
@@ -136,15 +143,58 @@ export default function EventManagement() {
         console.log('✓ File size valid');
       }
 
-      console.log('Dispatching addEvents action...');
-      const result = await dispatch(addEvents(formData)).unwrap();
-      console.log('✓ Event created successfully:', result);
+      // Prefer club-scoped creation endpoint so the backend associates event with club immediately
+      const token = localStorage.getItem('access_token');
+      if (!token) throw new Error('Not authenticated');
 
+      const clubEndpoint = `${API_BASE_URL}/api/clubs/${myClub.id}/events`;
+      let res = await fetch(clubEndpoint, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      // If backend doesn't support club-scoped POST (MethodNotAllowed), fall back to global endpoint
+      if (!res.ok && res.status === 405) {
+        console.warn('Club-scoped POST not allowed; falling back to POST /api/events');
+        // ensure club_id is present in the form (some callers append it already)
+        if (!formData.get('club_id') && myClub && myClub.id) formData.append('club_id', myClub.id);
+        res = await fetch(`${API_BASE_URL}/api/events`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        });
+      }
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || `Failed to create event (${res.status})`);
+      }
+
+      const result = await res.json();
+      console.log('✓ Event created successfully:', result);
 
       setShowCreateEventModal(false);
 
-      console.log('Refreshing events list...');
-      dispatch(fetchEvents()); // Refresh events list
+      // Refresh both global and club-scoped lists and wait for server values
+      try {
+        await dispatch(fetchEvents());
+      } catch (err) {
+        console.debug('fetchEvents (create) failed', err);
+      }
+      if (myClub && myClub.id) {
+        try {
+          const clubPayload = await dispatch(fetchClubById(myClub.id)).unwrap();
+          console.debug('fetchClubById (create) payload:', clubPayload);
+          setMyClub(clubPayload);
+        } catch (err) {
+          console.debug('fetchClubById (create) failed:', err);
+        }
+      }
       console.log('=== CREATE EVENT COMPLETED ===');
     } catch (error) {
       console.error('=== CREATE EVENT FAILED ===');
@@ -177,12 +227,44 @@ export default function EventManagement() {
         }
       }
 
-      const result = await dispatch(updateEvents({ eventId, eventData: formData })).unwrap();
+      // Use club-aware update (backend expects POST with _method=PUT)
+      const token = localStorage.getItem('access_token');
+      if (!token) throw new Error('Not authenticated');
 
+      // Ensure _method=PUT is set (some callers already set it)
+      if (!formData.get('_method')) formData.append('_method', 'PUT');
+
+      const res = await fetch(`${API_BASE_URL}/api/events/${eventId}`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || `Failed to update event (${res.status})`);
+      }
+
+      const result = await res.json();
 
       setSelectedEvent(null);
 
-      dispatch(fetchEvents()); // Refresh events list
+      try {
+        await dispatch(fetchEvents());
+      } catch (err) {
+        console.debug('fetchEvents (update) failed', err);
+      }
+      if (myClub && myClub.id) {
+        try {
+          const clubPayload = await dispatch(fetchClubById(myClub.id)).unwrap();
+          console.debug('fetchClubById (update) payload:', clubPayload);
+          setMyClub(clubPayload);
+        } catch (err) {
+          console.debug('fetchClubById (update) failed:', err);
+        }
+      }
     } catch (error) {
       toast.error(error?.message || 'Failed to update event');
     }
@@ -194,7 +276,22 @@ export default function EventManagement() {
 
     try {
       await dispatch(deleteEvents(eventToDelete.id)).unwrap();
-      dispatch(fetchEvents());
+      try {
+        await dispatch(fetchEvents());
+      } catch (err) {
+        console.debug('fetchEvents (delete) failed', err);
+      }
+      // Immediately remove the event from currentClub in the store for instant UI update
+      dispatch(removeEventFromCurrentClub(eventToDelete.id));
+      if (myClub && myClub.id) {
+        try {
+          const clubPayload = await dispatch(fetchClubById(myClub.id)).unwrap();
+          console.debug('fetchClubById (delete) payload:', clubPayload);
+          setMyClub(clubPayload);
+        } catch (err) {
+          console.debug('fetchClubById (delete) failed:', err);
+        }
+      }
       setEventToDelete(null);
     } catch (error) {
       toast.error(error?.message || 'Failed to delete event');

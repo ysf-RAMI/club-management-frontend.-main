@@ -73,4 +73,7 @@ app.listen(3001, () => {
 // development so requests are made to relative paths (e.g. `/api/clubs`) and
 // Vite's proxy (configured in vite.config.js) will forward them to the backend.
 // Example in .env: VITE_API_BASE_URL=https://api.example.com
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://youngest-kaylyn-cmsbackend-95cdb78f.koyeb.app/'
+// Default to a local backend for developer convenience. Override with
+// environment variable `VITE_API_URL` when needed (e.g. production).
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+// Note: set VITE_API_URL in a .env file at the project root to change.

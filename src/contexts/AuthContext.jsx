@@ -239,32 +239,19 @@ const AuthContextProvider = ({ children }) => {
 
       const { access_token, role, expires_in } = data;
 
-      // Store token temporarily
+      // Store token immediately so the app can consider the user authenticated
       setToken(access_token);
       localStorage.setItem('access_token', access_token);
       localStorage.setItem('expires_in', expires_in);
 
-      // Fetch user details using the access token
-      const userResponse = await fetch(`${API_BASE_URL}/api/auth/me`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${access_token}`,
-        },
-      });
+      // Set initial role (base role from auth response) so routing can happen quickly
+      setRole(role);
+      localStorage.setItem('role', role);
 
-      const userData = await userResponse.json();
-
-      if (!userResponse.ok) {
-        throw new Error(userData.message || 'Failed to fetch user details');
-      }
-
-      // If user is a member, fetch detailed club info to determine effective role
-      let effectiveRole = role;
-
-      if (role === 'member' && userData.id) {
+      // Fire-and-forget: fetch detailed user info in background without blocking login
+      (async function fetchUserBackground() {
         try {
-          const detailedUserResponse = await fetch(`${API_BASE_URL}/api/users/${userData.id}`, {
+          const userResponse = await fetch(`${API_BASE_URL}/api/auth/me`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
@@ -272,45 +259,58 @@ const AuthContextProvider = ({ children }) => {
             },
           });
 
-          if (detailedUserResponse.ok) {
-            const detailedUserData = await detailedUserResponse.json();
-
-            // Check if user has admin-member role in any club
-            if (detailedUserData.clubs && detailedUserData.clubs.length > 0) {
-              const hasAdminMemberRole = detailedUserData.clubs.some(
-                club => club.pivot?.role === 'admin-member'
-              );
-
-              if (hasAdminMemberRole) {
-                effectiveRole = 'admin-member';
-              }
-            }
-
-            // Use detailed user data with clubs
-            setUser(detailedUserData);
-            localStorage.setItem('user', JSON.stringify(detailedUserData));
-          } else {
-            // Fallback to basic user data
-            setUser(userData);
-            localStorage.setItem('user', JSON.stringify(userData));
+          if (!userResponse.ok) {
+            // don't block login on user fetch failure
+            console.warn('Background: failed to fetch /auth/me');
+            return;
           }
-        } catch (err) {
-          console.error('Error fetching detailed user data:', err);
+
+          const userData = await userResponse.json();
+
+          // Save basic user data
           setUser(userData);
           localStorage.setItem('user', JSON.stringify(userData));
-        }
-      } else {
-        // For non-member roles, use basic user data
-        setUser(userData);
-        localStorage.setItem('user', JSON.stringify(userData));
-      }
 
-      // Store the effective role
-      setRole(effectiveRole);
-      localStorage.setItem('role', effectiveRole);
+          // If role is member, fetch detailed user (with clubs) to compute effective role
+          if (role === 'member' && userData.id) {
+            try {
+              const detailedUserResponse = await fetch(`${API_BASE_URL}/api/users/${userData.id}`, {
+                method: 'GET',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${access_token}`,
+                },
+              });
+
+              if (detailedUserResponse.ok) {
+                const detailedUserData = await detailedUserResponse.json();
+                setUser(detailedUserData);
+                localStorage.setItem('user', JSON.stringify(detailedUserData));
+
+                // compute effective role
+                if (detailedUserData.clubs && detailedUserData.clubs.length > 0) {
+                  const hasAdminMemberRole = detailedUserData.clubs.some(
+                    (club) => club.pivot && club.pivot.role === 'admin-member'
+                  );
+                  if (hasAdminMemberRole) {
+                    setRole('admin-member');
+                    localStorage.setItem('role', 'admin-member');
+                  }
+                }
+              }
+            } catch (err) {
+              console.warn('Background: failed to fetch detailed user', err);
+            }
+          }
+        } catch (err) {
+          console.warn('Background user fetch error:', err);
+        }
+      })();
 
       toast.success('Login successful!');
-      return { ...data, role: effectiveRole };
+
+      // Return auth response quickly so UI can proceed (navigation uses isAuthenticated/token)
+      return { access_token, role, expires_in };
     } catch (error) {
       toast.error(error.message || 'Login failed. Please try again.');
       throw error;

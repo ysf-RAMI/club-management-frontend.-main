@@ -2,7 +2,7 @@ import { useEffect, useState, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchEventById, registerForEvent } from '../../../app/eventSlice';
-import { fetchUserById } from '../../../app/userSlice';
+import { fetchUserById, fetchUserRegisteredEvents, addRegisteredEvent } from '../../../app/userSlice';
 import { fetchClubById } from '../../../app/clubSlice';
 import Loader from '../../../components/common/UI/Loader';
 import { toast } from 'react-toastify';
@@ -89,6 +89,11 @@ export default function EventDetails() {
       if (registerForEvent.fulfilled.match(result)) {
         toast.success('Successfully registered for the event!');
         dispatch(fetchEventById(event.id));
+        const uid = user?.id || (JSON.parse(localStorage.getItem('user') || 'null') || {}).id;
+        // Optimistic: add registered event immediately to user's registeredEvents list
+        const payloadEvent = result.payload && Object.keys(result.payload).length ? result.payload : event;
+        dispatch(addRegisteredEvent(payloadEvent));
+        if (uid) dispatch(fetchUserRegisteredEvents(uid));
       } else if (registerForEvent.rejected.match(result)) {
         toast.error(result.payload || 'Failed to register for the event.');
       }

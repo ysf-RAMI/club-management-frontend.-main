@@ -18,12 +18,14 @@ import { AuthContext } from '../../contexts/AuthContext';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchClubs } from '../../app/clubSlice';
 import { fetchEvents } from '../../app/eventSlice';
+import { fetchUserRegisteredEvents } from '../../app/userSlice';
 import { API_BASE_URL } from '../../config/api';
 import Loader from '../common/UI/Loader';
 
 export default function MemberDashboard(props) {
   const { clubs, loading } = useSelector((state) => state.clubs);
   const { events, loading: eventsLoading } = useSelector((state) => state.events);
+  const { registeredEvents, registeredEventsLoading } = useSelector((state) => state.user);
   const dispatch = useDispatch();
 
 
@@ -39,6 +41,14 @@ export default function MemberDashboard(props) {
     dispatch(fetchClubs());
     dispatch(fetchEvents());
   }, [dispatch]);
+
+  // Fetch user's registered events from backend (user-scoped endpoint)
+  useEffect(() => {
+    const uid = user?.id || meId;
+    if (uid) {
+      dispatch(fetchUserRegisteredEvents(uid));
+    }
+  }, [dispatch, user, meId]);
 
   // Filter clubs where user is a member with approved status
   useEffect(() => {
@@ -58,28 +68,16 @@ export default function MemberDashboard(props) {
     }
   }, [clubs, meId]);
 
-  // Filter Events where user is a participant (registered)
+  // Use server-provided registered events (preferred) to populate joined events
   useEffect(() => {
-    if (events.length > 0 && meId) {
-      const myJoinedEvents = events.filter((event) => {
-        // Check if event has users array
-        if (!event.users || !Array.isArray(event.users)) return false;
-
-        // Check if user is registered for the event
-        const userInEvent = event.users.find((u) => u.id === meId);
-
-        // Return true only if user is found in the event's users array
-        return userInEvent !== undefined;
-      });
-
-      // Sort events by date (upcoming first)
-      const sortedEvents = myJoinedEvents.sort((a, b) => {
-        return new Date(a.date) - new Date(b.date);
-      });
-
+    const uid = user?.id || meId;
+    if (registeredEvents && uid) {
+      // registeredEvents may be array or {data,meta}; normalize
+      const list = Array.isArray(registeredEvents) ? registeredEvents : (registeredEvents.data || registeredEvents);
+      const sortedEvents = (list || []).slice().sort((a, b) => new Date(a.date) - new Date(b.date));
       setJoinedEvents(sortedEvents);
     }
-  }, [events, meId]);
+  }, [registeredEvents, meId, user]);
 
   // If user is not loaded yet, show loading
   if (!user) {
@@ -87,7 +85,7 @@ export default function MemberDashboard(props) {
   }
 
   // If data is still loading
-  if (loading || eventsLoading) {
+  if (loading || eventsLoading || registeredEventsLoading) {
     return <Loader fullScreen={true} size="large" message="Loading your data..." />;
   }
 

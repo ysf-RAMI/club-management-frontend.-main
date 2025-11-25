@@ -8,14 +8,33 @@ import { useNavigate } from 'react-router-dom';
 import { faEye, faGraduationCap, faPlus, faCalendarAlt, faUsers, faCheckCircle, faClipboardList, faClock } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { API_BASE_URL } from '../../config/api';
+import {
+    getUserClubPivot,
+    getUserEventPivot,
+    isPendingPivot,
+    isApprovedPivot,
+    pivotCreatedAt,
+} from '../../utils/pivotHelpers';
 
 export default function StdDashboard({ onLinkClick }) {
     const dispatch = useDispatch();
-    const { user, authLoading } = useContext(AuthContext);
+    const { user } = useContext(AuthContext);
     const [clubRegister, setClubRegister] = useState([]);
     const navigate = useNavigate();
 
-    const userId = user ? user.id : null;
+    // Use AuthContext user first, then fall back to localStorage (helps when context isn't populated yet)
+    const storedUser = (() => {
+        try {
+            return JSON.parse(localStorage.getItem('user')) || null;
+        } catch (e) {
+            return null;
+        }
+    })();
+    const userId = user?.id || storedUser?.id || null;
+    // Debug: show resolved userId used for fetching user-specific lists
+    useEffect(() => {
+        console.log('StdDashboard resolved userId:', userId);
+    }, [userId]);
 
     const { clubs, loading: clubsLoading } = useSelector((state) => state.clubs);
     const { events, filteredEvents, eventsLoading } = useSelector((state) => state.events);
@@ -37,19 +56,28 @@ export default function StdDashboard({ onLinkClick }) {
     };
 
     useEffect(() => {
-        if (user && user.id) {
-            dispatch(fetchUserRegisteredEvents(user.id));
-            dispatch(fetchPendingClubRequests(user.id));
+        if (userId) {
+            dispatch(fetchUserRegisteredEvents(userId));
+            dispatch(fetchPendingClubRequests(userId));
         }
-    }, [user, dispatch]);
+    }, [userId, dispatch]);
+
+    // Re-fetch pending requests and registered events when clubs or events change
+    // This ensures dashboard updates after the user joins a club or registers for an event
+    useEffect(() => {
+        if (!userId) return;
+        dispatch(fetchPendingClubRequests(userId));
+        dispatch(fetchUserRegisteredEvents(userId));
+    }, [userId, dispatch, clubs, events]);
 
     useEffect(() => {
         dispatch(fetchEvents());
     }, [dispatch]);
 
     useEffect(() => {
-        console.log('this is user credantials : ' + user);
-    }, [])
+        // Better logging: print object directly so console shows properties
+        console.log('this is user credentials:', user);
+    }, []);
 
     const checkClubRegister = (userId) => {
         const joinedClubs = clubs.filter((club) =>
@@ -161,11 +189,8 @@ export default function StdDashboard({ onLinkClick }) {
                             ) : (
                                 <div className="space-y-2">
                                     {clubRequests.map((club) => {
-                                        if (!club.users || !Array.isArray(club.users)) return null;
-                                        const currentUserPivot = club.users.find(
-                                            (u) => u.id === userId && u.pivot.status === 'pending'
-                                        );
-                                        if (!currentUserPivot) return null;
+                                        const currentUserPivot = getUserClubPivot(club, userId);
+                                        if (!currentUserPivot || !isPendingPivot(currentUserPivot)) return null;
 
                                         return (
                                             <div
@@ -174,8 +199,8 @@ export default function StdDashboard({ onLinkClick }) {
                                             >
                                                 <div className="flex items-center gap-3">
                                                     <img
-                                                        src={club.image ? `${API_BASE_URL}${club.image}` : '/img/Club1.png'}
-                                                        alt={club.name}
+                                                        src={club.image ? `${API_BASE_URL}${club.image}` : (club.club?.image ? `${API_BASE_URL}${club.club.image}` : '/img/Club1.png')}
+                                                        alt={club.name || club.club?.name}
                                                         className="h-11 w-11 rounded-lg object-cover ring-2 ring-purple-100 group-hover:ring-purple-300 transition-all duration-200"
                                                     />
                                                     <div>
@@ -183,7 +208,7 @@ export default function StdDashboard({ onLinkClick }) {
                                                         <p className="text-xs text-gray-600 line-clamp-1 mb-0.5">{club.description}</p>
                                                         <p className="text-xs text-gray-500 flex items-center gap-1">
                                                             <FontAwesomeIcon icon={faClock} className="text-xs" />
-                                                            Applied {new Date(currentUserPivot.pivot.created_at).toLocaleDateString()}
+                                                            Applied {new Date(pivotCreatedAt(currentUserPivot)).toLocaleDateString()}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -260,9 +285,9 @@ export default function StdDashboard({ onLinkClick }) {
                                 <div className="space-y-2">
                                     {registeredEvents.map((evt) => {
                                         const club = clubs.find((c) => c.id === (evt.clubId || evt.club_id));
-                                        const currentUserPivot = evt.users?.find((user) => user.id === userId);
-                                        const status = currentUserPivot?.pivot?.status;
-
+                                        const currentUserPivot = getUserEventPivot(evt, userId);
+                                        const status = currentUserPivot?.pivot?.status ?? currentUserPivot?.status ?? null;
+                                        const statusNormalized = status ? String(status).toLowerCase() : null;
                                         return (
                                             <div
                                                 key={evt.id}
@@ -287,15 +312,15 @@ export default function StdDashboard({ onLinkClick }) {
                                                 <div className="flex items-center gap-2">
                                                     {status && (
                                                         <span
-                                                            className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 ${status === 'approved'
+                                                            className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 ${statusNormalized === 'approved'
                                                                 ? 'bg-green-100 text-green-800'
-                                                                : status === 'pending'
+                                                                : statusNormalized === 'pending'
                                                                     ? 'bg-yellow-100 text-yellow-800'
                                                                     : 'bg-red-100 text-red-800'
                                                                 }`}
                                                         >
-                                                            {status === 'approved' && <FontAwesomeIcon icon={faCheckCircle} className="text-xs" />}
-                                                            {status.charAt(0).toUpperCase() + status.slice(1)}
+                                                            {statusNormalized === 'approved' && <FontAwesomeIcon icon={faCheckCircle} className="text-xs" />}
+                                                            {String(status).charAt(0).toUpperCase() + String(status).slice(1)}
                                                         </span>
                                                     )}
                                                     <button className="text-gray-400 hover:text-green-600 p-1.5 hover:bg-green-50 rounded-lg transition-all duration-200 cursor-pointer">

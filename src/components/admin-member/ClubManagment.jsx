@@ -17,8 +17,9 @@ import {
   faUserMinus,
 } from '@fortawesome/free-solid-svg-icons';
 import { API_BASE_URL } from '../../config/api';
+import { normalizeStatus } from '../../utils/pivotHelpers';
 import { useSelector, useDispatch } from 'react-redux';
-import { fetchClubs, approveJoinClub } from '../../app/clubSlice';
+import { fetchClubs, fetchClubById, approveJoinClub } from '../../app/clubSlice';
 import { toast } from 'react-toastify';
 import Loader from '../common/UI/Loader'; export default function ClubManagement() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -26,7 +27,7 @@ import Loader from '../common/UI/Loader'; export default function ClubManagement
   const [selectedMember, setSelectedMember] = useState(null);
 
   // Redux state
-  const { clubs, loading } = useSelector((state) => state.clubs);
+  const { clubs, loading, currentClub } = useSelector((state) => state.clubs);
   const dispatch = useDispatch();
 
   // Get current user
@@ -46,23 +47,15 @@ import Loader from '../common/UI/Loader'; export default function ClubManagement
   // Find the club where current user is admin-member
   useEffect(() => {
     if (clubs.length > 0 && meId) {
-      const foundClub = clubs.find(
-        (club) =>
-          club.users &&
-          club.users.some((user) => user.id === meId && user.pivot.role === 'admin-member'),
+      const foundClub = clubs.find((club) =>
+        club.users && club.users.some((user) => user.id === meId && user.pivot?.role === 'admin-member'),
       );
-      setMyClub(foundClub);
-
-      if (foundClub && foundClub.users) {
-        // Set all members
-        setAllMembers(foundClub.users);
-
-        // Filter pending members
-        const pending = foundClub.users.filter((user) => user.pivot.status === 'pending');
-        setPendingMembers(pending);
+      if (foundClub) {
+        // Fetch detailed club (with users/pivot) to ensure admin view has latest requests
+        dispatch(fetchClubById(foundClub.id));
       }
     }
-  }, [clubs, meId]);
+  }, [clubs, meId, dispatch]);
 
   // Approve member handler
   const handleApproveMember = async (memberId) => {
@@ -109,19 +102,32 @@ import Loader from '../common/UI/Loader'; export default function ClubManagement
     }
   };
 
+  // When `currentClub` updates, populate local members lists
+  useEffect(() => {
+    if (currentClub && currentClub.id) {
+      setMyClub(currentClub);
+      if (Array.isArray(currentClub.users)) {
+        setAllMembers(currentClub.users);
+        const pending = currentClub.users.filter((user) => (user.pivot?.status || '').toLowerCase() === 'pending');
+        setPendingMembers(pending);
+      } else {
+        setAllMembers([]);
+        setPendingMembers([]);
+      }
+    }
+  }, [currentClub]);
+
   // Filter members based on search and status
   const filteredMembers = allMembers.filter((member) => {
     const matchesSearch = member.name.toLowerCase().includes(searchTerm.toLowerCase());
 
-    // Map pivot status to display status
+    // Map pivot status to display status (robust to missing pivot)
+    const raw = member.pivot?.status ?? member.status ?? null;
+    const s = normalizeStatus(raw);
     let memberStatus = 'Inactive';
-    if (member.pivot.status === 'approved') {
-      memberStatus = 'Active';
-    } else if (member.pivot.status === 'pending') {
-      memberStatus = 'Pending';
-    } else if (member.pivot.status === 'rejected') {
-      memberStatus = 'Inactive';
-    }
+    if (s === 'approved') memberStatus = 'Active';
+    else if (s === 'pending') memberStatus = 'Pending';
+    else if (s === 'rejected') memberStatus = 'Inactive';
 
     const matchesFilter = filterStatus === '' || memberStatus === filterStatus;
 

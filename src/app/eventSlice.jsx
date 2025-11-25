@@ -13,53 +13,72 @@ export const addEvents = createAsyncThunk(
       return rejectWithValue('User not authenticated');
     }
     try {
-      console.log('Event Data (raw FormData object):', eventData);
-      for (let [key, value] of eventData.entries()) {
-        console.log(key, value);
-      }
-      console.log('Request Headers:', { Authorization: `Bearer ${token}` });
-      console.log('API Endpoint:', `${API_BASE_URL}/api/events`);
+      // Support calling with either a FormData instance or an object { formData, clubId }
+      let formData = eventData;
+      let clubId = null;
 
-      const response = await fetch(`${API_BASE_URL}/api/events`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: eventData,
-      }); console.log('Response Status:', response.status);
-      console.log('Response OK:', response.ok);
-      console.log('Response Headers:', {
-        contentType: response.headers.get('content-type'),
-        contentLength: response.headers.get('content-length')
-      });
+      if (eventData instanceof FormData) {
+        formData = eventData;
+        clubId = formData.get('club_id') || formData.get('clubId');
+      } else if (eventData && typeof eventData === 'object') {
+        if (eventData.formData instanceof FormData) {
+          formData = eventData.formData;
+          clubId = eventData.clubId || formData.get('club_id') || formData.get('clubId');
+        } else {
+          // convert plain object to FormData
+          formData = new FormData();
+          Object.keys(eventData).forEach((k) => {
+            if (eventData[k] !== undefined && eventData[k] !== null) {
+              formData.append(k, eventData[k]);
+            }
+          });
+          clubId = eventData.club_id || eventData.clubId;
+        }
+      }
+
+      const headers = { Authorization: `Bearer ${token}` };
+
+      // Try club-scoped endpoint first when we have a clubId
+      let response;
+      if (clubId) {
+        response = await fetch(`${API_BASE_URL}/api/clubs/${clubId}/events`, {
+          method: 'POST',
+          headers,
+          body: formData,
+        });
+
+        // If the server doesn't support club-scoped POST, fall back to global endpoint
+        if (response.status === 405) {
+          if (!formData.get('club_id')) formData.append('club_id', clubId);
+          response = await fetch(`${API_BASE_URL}/api/events`, {
+            method: 'POST',
+            headers,
+            body: formData,
+          });
+        }
+      } else {
+        response = await fetch(`${API_BASE_URL}/api/events`, {
+          method: 'POST',
+          headers,
+          body: formData,
+        });
+      }
 
       if (!response.ok) {
-        // Try to get the response text first to see what we're dealing with
         const responseText = await response.text();
-        console.error('=== ERROR RESPONSE ===');
-        console.error('Status:', response.status);
-        console.error('Response Text (first 500 chars):', responseText.substring(0, 500));
-
-        // Try to parse as JSON if possible
+        // Attempt to parse JSON, but be tolerant of HTML error pages
         try {
           const errorData = JSON.parse(responseText);
-          console.error('Parsed Error Data:', errorData);
-          return rejectWithValue(errorData.message || errorData);
+          return rejectWithValue(errorData.message || errorData || `HTTP ${response.status}`);
         } catch (parseError) {
-          console.error('Could not parse error response as JSON');
           return rejectWithValue(`Server error (${response.status}): ${responseText.substring(0, 200)}`);
         }
       }
 
       const data = await response.json();
-      console.log('✓ Success Response:', data);
       toast.success('Event added successfully');
       return data;
     } catch (error) {
-      console.error('=== FETCH EXCEPTION ===');
-      console.error('Error Name:', error.name);
-      console.error('Error Message:', error.message);
-      console.error('Error Stack:', error.stack);
       return rejectWithValue(error.message);
     }
   },
@@ -209,6 +228,75 @@ export const changeEventStatus = createAsyncThunk(
       return data;
     } catch (error) {
       return rejectWithValue(error.message);
+    }
+  },
+);
+
+export const approveEventRegistration = createAsyncThunk(
+  'events/approveEventRegistration',
+  async ({ eventId, userId, status }, { rejectWithValue }) => {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      return rejectWithValue('You must be logged in to approve registrations.');
+    }
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/events/${eventId}/approve-registration`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ user_id: userId, status }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        return rejectWithValue(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  },
+);
+
+export const fetchClubEventRequests = createAsyncThunk(
+  'events/fetchClubEventRequests',
+  async ({ clubId, status = 'pending', page = 1, limit = 100 }, { rejectWithValue }) => {
+    const token = localStorage.getItem('access_token');
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/clubs/${clubId}/event-requests?status=${encodeURIComponent(status)}&page=${page}&limit=${limit}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        return rejectWithValue(text || `Failed to fetch club event requests (${res.status})`);
+      }
+      const json = await res.json();
+      // Normalize to { data, meta }
+      return json;
+    } catch (err) {
+      return rejectWithValue(err.message);
+    }
+  },
+);
+
+export const fetchEventRegistrations = createAsyncThunk(
+  'events/fetchEventRegistrations',
+  async ({ eventId, status = 'all', page = 1, limit = 100 }, { rejectWithValue }) => {
+    const token = localStorage.getItem('access_token');
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/events/${eventId}/registrations?status=${encodeURIComponent(status)}&page=${page}&limit=${limit}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        return rejectWithValue(text || `Failed to fetch event registrations (${res.status})`);
+      }
+      const json = await res.json();
+      return json;
+    } catch (err) {
+      return rejectWithValue(err.message);
     }
   },
 );
@@ -400,7 +488,24 @@ const eventSlice = createSlice({
       })
       .addCase(addEvents.fulfilled, (state, action) => {
         state.loading = false;
-        state.events.push(action.payload);
+        // Normalize different possible response shapes from the API
+        let newEvent = action.payload;
+        try {
+          if (!newEvent) return;
+          if (Array.isArray(newEvent) && newEvent.length > 0) newEvent = newEvent[0];
+          if (newEvent.value && Array.isArray(newEvent.value) && newEvent.value.length > 0) newEvent = newEvent.value[0];
+          if (newEvent.data && Array.isArray(newEvent.data) && newEvent.data.length > 0) newEvent = newEvent.data[0];
+          if (newEvent.data && newEvent.data.id) newEvent = newEvent.data;
+          if (newEvent.event) newEvent = newEvent.event;
+        } catch (err) {
+          // If normalization fails, fall back to using the raw payload
+          newEvent = action.payload;
+        }
+
+        // Only add if we have an object with an id
+        if (newEvent && (newEvent.id || newEvent.event_id)) {
+          state.events.push(newEvent);
+        }
         applyFilters(state);
       })
       .addCase(addEvents.rejected, (state, action) => {
@@ -429,7 +534,9 @@ const eventSlice = createSlice({
       })
       .addCase(deleteEvents.fulfilled, (state, action) => {
         state.loading = false;
-        state.events = state.events.filter((event) => event.id !== action.payload);
+        // Compare IDs as strings to avoid type mismatch (number vs string)
+        const removedId = String(action.payload);
+        state.events = state.events.filter((event) => String(event.id) !== removedId && String(event.event_id || '') !== removedId);
         applyFilters(state);
       })
       .addCase(deleteEvents.rejected, (state, action) => {

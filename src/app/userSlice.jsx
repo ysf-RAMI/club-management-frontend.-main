@@ -5,20 +5,38 @@ const url = API_BASE_URL;
 
 export const fetchUserRegisteredEvents = createAsyncThunk(
   'user/fetchUserRegisteredEvents',
-  async (userId) => {
-    if (!userId) return [];
+  async (arg, { rejectWithValue }) => {
+    try {
+      // Allow either (userId) or ({ userId, status, page, limit })
+      let userId, status, page, limit;
+      if (typeof arg === 'string') {
+        userId = arg;
+        status = 'all';
+        page = 1;
+        limit = 100;
+      } else {
+        userId = arg?.userId;
+        status = arg?.status ?? 'all';
+        page = arg?.page ?? 1;
+        limit = arg?.limit ?? 100;
+      }
+      if (!userId) return [];
 
-    const eventsRes = await fetch(`${url}/api/events`);
-    if (!eventsRes.ok) {
-      throw new Error(`Failed to fetch events: ${eventsRes.status}`);
+      const res = await fetch(`${url}/api/users/${userId}/registered-events?status=${encodeURIComponent(status)}&page=${page}&limit=${limit}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+        },
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        return rejectWithValue(text || `Failed to fetch registered events (${res.status})`);
+      }
+      const json = await res.json();
+      // Return payload as { data, meta } for callers; keep backward compatibility by returning data when needed
+      return json;
+    } catch (err) {
+      return rejectWithValue(err.message);
     }
-    const allEvents = await eventsRes.json();
-
-    const registeredEvents = allEvents.filter(
-      (event) => event.users && event.users.some((user) => user.id === userId),
-    );
-
-    return registeredEvents;
   },
 );
 
@@ -33,19 +51,37 @@ export const fetchUserById = createAsyncThunk('student/fetchUserById', async (us
 
 export const fetchPendingClubRequests = createAsyncThunk(
   'user/fetchPendingClubRequests',
-  async (userId) => {
-    if (!userId) return [];
-    const res = await fetch(`${url}/api/clubs`);
-    if (!res.ok) {
-      throw new Error('Failed to fetch clubs');
+  async (arg, { rejectWithValue }) => {
+    try {
+      // Allow either (userId) or ({ userId, status, page, limit })
+      let userId, status, page, limit;
+      if (typeof arg === 'string') {
+        userId = arg;
+        status = 'pending';
+        page = 1;
+        limit = 100;
+      } else {
+        userId = arg?.userId;
+        status = arg?.status ?? 'pending';
+        page = arg?.page ?? 1;
+        limit = arg?.limit ?? 100;
+      }
+      if (!userId) return [];
+
+      const res = await fetch(`${url}/api/users/${userId}/club-requests?status=${encodeURIComponent(status)}&page=${page}&limit=${limit}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+        },
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        return rejectWithValue(text || `Failed to fetch club requests (${res.status})`);
+      }
+      const json = await res.json();
+      return json;
+    } catch (err) {
+      return rejectWithValue(err.message);
     }
-    const clubs = await res.json();
-    const pendingRequests = clubs.filter(
-      (club) =>
-        club.users &&
-        club.users.some((user) => user.id === userId && user.pivot.status === 'pending'),
-    );
-    return pendingRequests;
   },
 );
 
@@ -188,6 +224,10 @@ export const updatePassword = createAsyncThunk('user/updatePassword', async ({ u
       console.log('Adding registered event:', action.payload);
       state.registeredEvents = [...state.registeredEvents, action.payload];
     },
+    addClubRequest: (state, action) => {
+      // Add a club to the user's pending club requests (optimistic update)
+      state.clubRequests = [...(state.clubRequests || []), action.payload];
+    },
   },
   extraReducers: (builder) => {
     builder.addCase(fetchUserById.rejected, (state, action) => {
@@ -199,7 +239,8 @@ export const updatePassword = createAsyncThunk('user/updatePassword', async ({ u
     });
     builder.addCase(fetchUserRegisteredEvents.fulfilled, (state, action) => {
       state.registeredEventsLoading = false;
-      state.registeredEvents = action.payload;
+      // action.payload may be { data, meta } or an array (backwards compat). Normalize to array.
+      state.registeredEvents = Array.isArray(action.payload) ? action.payload : (action.payload?.data || []);
     });
     builder.addCase(fetchUserRegisteredEvents.rejected, (state, action) => {
       state.registeredEventsLoading = false;
@@ -210,7 +251,7 @@ export const updatePassword = createAsyncThunk('user/updatePassword', async ({ u
     });
     builder.addCase(fetchPendingClubRequests.fulfilled, (state, action) => {
       state.clubRequestsLoading = false;
-      state.clubRequests = action.payload;
+      state.clubRequests = Array.isArray(action.payload) ? action.payload : (action.payload?.data || []);
     });
     builder.addCase(fetchPendingClubRequests.rejected, (state, action) => {
       state.clubRequestsLoading = false;
@@ -264,6 +305,6 @@ export const updatePassword = createAsyncThunk('user/updatePassword', async ({ u
   },
 });
 
-export const { addRegisteredEvent } = userSlice.actions;
+export const { addRegisteredEvent, addClubRequest } = userSlice.actions;
 
 export default userSlice.reducer;

@@ -209,6 +209,18 @@ export default function Sidebar({ onLinkClick, activeContent }) {
               <FontAwesomeIcon icon={faHistory} className="text-1xl" />{' '}
               <span className="ml-2 text-sm font-medium">Events</span>
             </a>
+            <a
+              href="#"
+              className={
+                activeLink === 'Event Requests'
+                  ? 'bg-blue-100 text-blue-500 p-2 rounded-md w-full text-left'
+                  : 'hover:bg-gray-200 p-2 rounded-md w-full text-left'
+              }
+              onClick={() => handleLinkClick('Event Requests')}
+            >
+              <FontAwesomeIcon icon={faCalendarAlt} className="text-1xl" />{' '}
+              <span className="ml-2 text-sm font-medium">Event Requests</span>
+            </a>
           </>
         )}
 

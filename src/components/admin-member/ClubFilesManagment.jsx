@@ -1,6 +1,6 @@
 
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
   faFolder,
@@ -23,6 +23,9 @@ import {
   faPlus
 } from "@fortawesome/free-solid-svg-icons"
 import { API_BASE_URL } from '../../config/api';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchClubs, fetchClubById } from '../../app/clubSlice';
+import { AuthContext } from '../../contexts/AuthContext';
 
 export default function ClubFilesManagment() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -34,62 +37,35 @@ export default function ClubFilesManagment() {
   const [selectedFileClubId, setSelectedFileClubId] = useState(null);
   const [adminMemberClubId, setAdminMemberClubId] = useState(null); // Placeholder for admin-member's club ID
 
+  const dispatch = useDispatch();
+  const { clubs, currentClub } = useSelector((s) => s.clubs);
+  const { userId } = useContext(AuthContext);
+  const meId = userId || (localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')).id : null);
+
   useEffect(() => {
-    // In a real application, you would fetch the admin-member's club ID here
-    // For now, we'll hardcode it for demonstration purposes.
-    // This club ID should come from the authenticated user's data.
-    setAdminMemberClubId(1); // Assuming admin-member is admin of club with ID 1
-  }, []);
+    dispatch(fetchClubs());
+  }, [dispatch]);
+
+  // find admin-member club and fetch full club details
+  useEffect(() => {
+    if (clubs && clubs.length > 0 && meId) {
+      const found = clubs.find((c) => Array.isArray(c.users) && c.users.some((u) => (u.id === meId || u.user_id === meId) && (u.pivot?.role === 'admin-member' || u.pivot?.role === 'admin_member')));
+      if (found) {
+        setAdminMemberClubId(found.id);
+        dispatch(fetchClubById(found.id));
+      }
+    }
+  }, [clubs, meId, dispatch]);
 
   // Sample data for clubs, gallery images, and documents
-  const allClubs = [
-    {
-      id: 1,
-      name: "Photography Club",
-      category: "Arts",
-      description: "A club for photography enthusiasts.",
-      image: "/img/Club1.png",
-      gallery: [
-        { id: 101, url: "https://via.placeholder.com/150/FF0000/FFFFFF?text=Photo1", type: "image", name: "Sunset.jpg" },
-        { id: 102, url: "https://via.placeholder.com/150/0000FF/FFFFFF?text=Photo2", type: "image", name: "Landscape.png" },
-      ],
-      documents: [
-        { id: 201, url: "https://www.africau.edu/images/default/sample.pdf", type: "pdf", name: "Club_Rules.pdf" },
-        { id: 202, url: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", type: "pdf", name: "Membership_Form.pdf" },
-      ],
-    },
-    {
-      id: 2,
-      name: "Robotics Club",
-      category: "Technology",
-      description: "Innovating the future with robotics.",
-      image: "/img/Club2.png",
-      gallery: [
-        { id: 103, url: "https://via.placeholder.com/150/FFFF00/000000?text=Robot1", type: "image", name: "Robot_Design.jpg" },
-        { id: 104, url: "https://via.placeholder.com/150/00FFFF/000000?text=Robot2", type: "image", name: "Competition.png" },
-      ],
-      documents: [
-        { id: 203, url: "https://www.africau.edu/images/default/sample.pdf", type: "pdf", name: "Robot_Specs.pdf" },
-      ],
-    },
-    {
-      id: 3,
-      name: "Chess Club",
-      category: "Strategy",
-      description: "Where minds meet and strategies unfold.",
-      image: "/img/Club3.png",
-      gallery: [
-        { id: 105, url: "https://via.placeholder.com/150/FF00FF/FFFFFF?text=Chess1", type: "image", name: "Tournament.jpg" },
-      ],
-      documents: [
-        { id: 204, url: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", type: "pdf", name: "Chess_Rules.pdf" },
-      ],
-    },
-  ];
+  // Prefer server-provided detailed club when available; otherwise try to find it in server `clubs`
+  const displayClubs = currentClub && adminMemberClubId === currentClub.id
+    ? [currentClub]
+    : (Array.isArray(clubs) && adminMemberClubId
+      ? (clubs.find((c) => c.id === adminMemberClubId) ? [clubs.find((c) => c.id === adminMemberClubId)] : [])
+      : []);
 
-  const clubs = adminMemberClubId ? allClubs.filter(club => club.id === adminMemberClubId) : [];
-
-  const filteredClubs = clubs.filter(club =>
+  const filteredClubs = displayClubs.filter(club =>
     club.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
     (filterCategory === 'All' || club.category === filterCategory)
   );

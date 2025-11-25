@@ -1,0 +1,78 @@
+﻿{
+    "id":  "b0615577-32ed-4199-a6f7-e4f7efbfcaae",
+    "name":  "Chess Club",
+    "description":  "A club for chess enthusiasts.",
+    "image":  "/images/default_club_image.jpg",
+    "categorie":  "Academics",
+    "max_members":  50,
+    "created_by":  "f301cb2a-e8f7-46d6-8269-e68d2e6180cf",
+    "created_at":  "2025-11-25T13:36:28.000000Z",
+    "updated_at":  "2025-11-25T13:36:28.000000Z",
+    "users":  [
+                  {
+                      "id":  "c08be30d-a542-401e-a97c-9355001e4cf0",
+                      "name":  "Member User",
+                      "email":  "member@example.com",
+                      "role":  "member",
+                      "email_verified_at":  null,
+                      "department":  "Electrical Engineering",
+                      "image":  "/images/default_user_image.jpg",
+                      "created_at":  "2025-11-25T13:36:28.000000Z",
+                      "updated_at":  "2025-11-25T13:36:28.000000Z",
+                      "pivot":  {
+                                    "club_id":  "b0615577-32ed-4199-a6f7-e4f7efbfcaae",
+                                    "user_id":  "c08be30d-a542-401e-a97c-9355001e4cf0",
+                                    "role":  "member",
+                                    "status":  "approved"
+                                }
+                  },
+                  {
+                      "id":  "b8c41ce9-9a4e-45dc-b1b4-796352169233",
+                      "name":  "Admin Member User",
+                      "email":  "adminmember@example.com",
+                      "role":  "member",
+                      "email_verified_at":  null,
+                      "department":  "Mechanical Engineering",
+                      "image":  "/images/default_user_image.jpg",
+                      "created_at":  "2025-11-25T13:36:28.000000Z",
+                      "updated_at":  "2025-11-25T13:36:28.000000Z",
+                      "pivot":  {
+                                    "club_id":  "b0615577-32ed-4199-a6f7-e4f7efbfcaae",
+                                    "user_id":  "b8c41ce9-9a4e-45dc-b1b4-796352169233",
+                                    "role":  "admin-member",
+                                    "status":  "approved"
+                                }
+                  }
+              ],
+    "events":  [
+                   {
+                       "id":  "d51be1b7-e86a-40f6-b902-0fe8e0bbb4f6",
+                       "club_id":  "b0615577-32ed-4199-a6f7-e4f7efbfcaae",
+                       "title":  "New Test Event",
+                       "description":  "Testing event creation",
+                       "date":  "2025-12-15 10:00:00",
+                       "location":  "Test Hall",
+                       "image":  "/images/default_event_image.jpg",
+                       "max_participants":  25,
+                       "status":  "pending",
+                       "created_by":  "b8c41ce9-9a4e-45dc-b1b4-796352169233",
+                       "created_at":  "2025-11-25T13:51:48.000000Z",
+                       "updated_at":  "2025-11-25T13:51:48.000000Z",
+                       "club_info":  {
+                                         "id":  "b0615577-32ed-4199-a6f7-e4f7efbfcaae",
+                                         "name":  "Chess Club"
+                                     },
+                       "club":  {
+                                    "id":  "b0615577-32ed-4199-a6f7-e4f7efbfcaae",
+                                    "name":  "Chess Club",
+                                    "description":  "A club for chess enthusiasts.",
+                                    "image":  "/images/default_club_image.jpg",
+                                    "categorie":  "Academics",
+                                    "max_members":  50,
+                                    "created_by":  "f301cb2a-e8f7-46d6-8269-e68d2e6180cf",
+                                    "created_at":  "2025-11-25T13:36:28.000000Z",
+                                    "updated_at":  "2025-11-25T13:36:28.000000Z"
+                                }
+                   }
+               ]
+}

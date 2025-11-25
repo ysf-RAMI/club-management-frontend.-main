@@ -12,7 +12,8 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import Header from '../common/Header';
 import { useSelector, useDispatch } from 'react-redux';
-import { fetchClubs, approveJoinClub } from '../../app/clubSlice';
+import { fetchClubs, fetchClubById, approveJoinClub } from '../../app/clubSlice';
+import { normalizeStatus } from '../../utils/pivotHelpers';
 import { toast } from 'react-toastify';
 import Loader from '../common/UI/Loader';
 import { AuthContext } from '../../contexts/AuthContext';
@@ -47,7 +48,7 @@ const QuickActionCard = ({ title, subtitle, icon, onClick, color }) => (
 );
 
 export default function AdMemberDashboard({ onLinkClick }) {
-  const { clubs, loading } = useSelector((state) => state.clubs);
+  const { clubs, loading, currentClub } = useSelector((state) => state.clubs);
   const dispatch = useDispatch();
   const { userId } = useContext(AuthContext);
   const meId = userId;
@@ -61,19 +62,28 @@ export default function AdMemberDashboard({ onLinkClick }) {
 
   useEffect(() => {
     if (clubs.length > 0 && meId) {
-      const foundClub = clubs.find(
-        (club) =>
-          club.users &&
-          club.users.some((user) => user.id === meId && user.pivot.role === 'admin-member'),
+      const foundClub = clubs.find((club) =>
+        club.users && club.users.some((user) => user.id === meId && user.pivot?.role === 'admin-member'),
       );
-      setMyClub(foundClub);
-
       if (foundClub) {
-        const pending = foundClub.users.filter((user) => user.pivot.status === 'pending');
-        setPendingMembers(pending);
+        // Fetch full club details (with users/pivots) to ensure we have the latest membership requests
+        dispatch(fetchClubById(foundClub.id));
       }
     }
-  }, [clubs, meId]);
+  }, [clubs, meId, dispatch]);
+
+  // Populate local club/member state from detailed `currentClub` when available
+  useEffect(() => {
+    if (currentClub && currentClub.id) {
+      setMyClub(currentClub);
+      if (Array.isArray(currentClub.users)) {
+        const pending = currentClub.users.filter((user) => normalizeStatus(user.pivot?.status) === 'pending');
+        setPendingMembers(pending);
+      } else {
+        setPendingMembers([]);
+      }
+    }
+  }, [currentClub]);
 
   const handleApproveMember = async (memberId) => {
     if (!myClub) {

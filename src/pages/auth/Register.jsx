@@ -93,7 +93,7 @@ const Register = () => {
                 name="name"
                 required
                 className="block w-full pl-10 pr-3 py-2.5 border-2 border-gray-200 rounded-lg shadow-sm focus:ring-2 focus:ring-purple-100 focus:border-purple-500 transition-all duration-200 text-sm"
-                placeholder="youssef rami"
+                placeholder="Your full name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />

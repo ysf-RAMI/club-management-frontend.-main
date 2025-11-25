@@ -185,6 +185,30 @@ export const deleteClub = createAsyncThunk(
   },
 );
 
+// Fetch all pending club join requests (admin view)
+export const fetchAllClubRequests = createAsyncThunk(
+  'clubs/fetchAllClubRequests',
+  async ({ status = 'pending', page = 1, limit = 100 } = {}, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const res = await fetch(`${API_BASE_URL}/api/club-requests?status=${encodeURIComponent(status)}&page=${page}&limit=${limit}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        return rejectWithValue(text || `Failed to fetch club requests (${res.status})`);
+      }
+      const json = await res.json();
+      // Expecting { data: [...], meta: {...} }
+      return json;
+    } catch (err) {
+      return rejectWithValue(err.message);
+    }
+  },
+);
+
 const applyFilters = (state) => {
   let filtered = [...state.clubs];
 
@@ -285,6 +309,12 @@ const clubSlice = createSlice({
     changeCategory: (state, action) => {
       state.currentCategory = action.payload.category;
       applyFilters(state);
+    },
+    removeEventFromCurrentClub: (state, action) => {
+      const eventId = String(action.payload);
+      if (state.currentClub && Array.isArray(state.currentClub.events)) {
+        state.currentClub.events = state.currentClub.events.filter((e) => String(e.id) !== eventId && String(e.event_id || '') !== eventId);
+      }
     },
     sortClubs: (state, action) => {
       state.currentSort = action.payload.sort;
@@ -454,6 +484,6 @@ const clubSlice = createSlice({
   },
 });
 
-export const { changeCategory, sortClubs, searchClubs, clearFilters } = clubSlice.actions;
+export const { changeCategory, sortClubs, searchClubs, clearFilters, removeEventFromCurrentClub } = clubSlice.actions;
 
 export default clubSlice.reducer;

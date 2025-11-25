@@ -25,7 +25,7 @@ export default function Member() {
   }
 
   return (
-    <div className="flex bg-gray-100">
+    <div className="flex flex-1 bg-gray-50">
       <Sidebar onLinkClick={handleLinkClick} activeContent={activeContent} />
       <div className="flex-1 p-4">
         {/* Conditional rendering based on activeContent */}

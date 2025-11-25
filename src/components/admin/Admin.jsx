@@ -26,9 +26,9 @@ export default function Admin() {
   }
 
   return (
-    <div className="flex">
+    <div className="flex flex-1 bg-gray-50">
       <Sidebar onLinkClick={handleLinkClick} activeContent={activeContent} />
-      <div className="flex-1 bg-gray-100 p-3">
+      <div className="flex-1 p-4">
         {/* Conditional rendering based on activeContent */}
         {activeContent === 'Dashboard' && <AdminDashboard onQuickActionClick={handleLinkClick} />}
         {activeContent === 'Manage Clubs' && <ManageClubs />}

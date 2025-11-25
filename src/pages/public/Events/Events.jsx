@@ -119,114 +119,139 @@ export default function Events() {
         </div>
 
         {/* Event Cards Grid */}
-        {loading ? <Loader /> : <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-12 max-w-7xl mx-auto">
-            {currentEvents.map((event) => {
-
-              return (
-                <div
-                  key={event.id}
-                  className="bg-white rounded-lg shadow-sm overflow-hidden flex flex-col"
-                >
-                  <img
-                    src={event.image ? `${API_BASE_URL}${event.image}` : '/img/Hero.jpg'}
-                    alt={event.title}
-                    className="w-full h-48 object-cover"
-                  />
-                  <div className="p-4 flex flex-col flex-grow">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
-
-                      </span>
-                      <span className="text-gray-500 text-sm">{new Date(event.date).toLocaleDateString()}</span>
-                    </div>
-                    <h3 className="font-bold text-xl mb-2">{event.title}</h3>
-                    <p className="text-gray-700 text-sm mb-4 flex-grow">{event.description}</p>
-                    <div className="flex items-center text-gray-600 text-sm mb-2">
-                      <FaMapMarkerAlt className="mr-2" /> {event.location}
-                    </div>
-                    {event.max_participants && (
-                      <div className="flex items-center text-green-600 text-sm mb-4">
-                        <FaUsers className="mr-2" /> Max {event.max_participants} participants
-                      </div>
-                    )}
-                    <button
-                      onClick={() => navigate(`/events/${event.id}`)}
-                      className="w-full cursor-pointer bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 transition duration-300 mt-auto"
-                    >
-                      View Details
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Pagination */}
-          <div className="flex justify-center p-6 max-w-7xl mx-auto">
-            <nav
-              className="relative z-0 inline-flex rounded-lg shadow-sm gap-2"
-              aria-label="Pagination"
-            >
-              <button
-                onClick={() => paginate(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="relative inline-flex items-center justify-center w-10 h-10 rounded-lg border border-transparent bg-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-300 disabled:opacity-50"
-              >
-                <span className="sr-only">Previous</span>
-                <svg
-                  className="h-5 w-5"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
-              {[...Array(totalPages).keys()].map((number) => (
+        {loading ? (
+          <Loader />
+        ) : filteredEvents.length === 0 ? (
+          <div className="min-h-screen bg-gray-100 flex items-center justify-center p-8">
+            <div className="text-center max-w-xl">
+              <h2 className="text-2xl font-bold text-gray-800 mb-3">No events found</h2>
+              <p className="text-gray-600 mb-6">There are no upcoming events right now. Check back later or contact club organizers to schedule events.</p>
+              <div className="flex justify-center gap-4">
                 <button
-                  key={number + 1}
-                  onClick={() => paginate(number + 1)}
-                  className={`relative inline-flex items-center justify-center w-10 h-10 rounded-lg border border-transparent text-sm font-medium ${currentPage === number + 1
-                    ? 'bg-violet-600 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                    }`}
+                  onClick={() => dispatch(clearEventFilters())}
+                  className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
                 >
-                  {number + 1}
+                  Clear Filters
                 </button>
-              ))}
-              <button
-                onClick={() => paginate(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="relative inline-flex items-center justify-center w-10 h-10 rounded-lg border border-transparent bg-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-300 disabled:opacity-50"
-              >
-                <span className="sr-only">Next</span>
-                <svg
-                  className="h-5 w-5"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  aria-hidden="true"
+                <button
+                  onClick={() => navigate('/clubs')}
+                  className="px-6 py-2 border border-indigo-600 text-indigo-600 rounded-lg hover:bg-indigo-50 transition"
                 >
-                  <path
-                    fillRule="evenodd"
-                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
-            </nav>
+                  Browse Clubs
+                </button>
+              </div>
+            </div>
           </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-12 max-w-7xl mx-auto">
+              {currentEvents.map((event) => {
 
-        </>}
+                return (
+                  <div
+                    key={event.id}
+                    className="bg-white rounded-lg shadow-sm overflow-hidden flex flex-col"
+                  >
+                    <img
+                      src={event.image ? `${API_BASE_URL}${event.image}` : '/img/Hero.jpg'}
+                      alt={event.title}
+                      className="w-full h-48 object-cover"
+                    />
+                    <div className="p-4 flex flex-col flex-grow">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
+
+                        </span>
+                        <span className="text-gray-500 text-sm">{new Date(event.date).toLocaleDateString()}</span>
+                      </div>
+                      <h3 className="font-bold text-xl mb-2">{event.title}</h3>
+                      <p className="text-gray-700 text-sm mb-4 flex-grow">{event.description}</p>
+                      <div className="flex items-center text-gray-600 text-sm mb-2">
+                        <FaMapMarkerAlt className="mr-2" /> {event.location}
+                      </div>
+                      {event.max_participants && (
+                        <div className="flex items-center text-green-600 text-sm mb-4">
+                          <FaUsers className="mr-2" /> Max {event.max_participants} participants
+                        </div>
+                      )}
+                      <button
+                        onClick={() => navigate(`/events/${event.id}`)}
+                        className="w-full cursor-pointer bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 transition duration-300 mt-auto"
+                      >
+                        View Details
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Pagination */}
+            <div className="flex justify-center p-6 max-w-7xl mx-auto">
+              <nav
+                className="relative z-0 inline-flex rounded-lg shadow-sm gap-2"
+                aria-label="Pagination"
+              >
+                <button
+                  onClick={() => paginate(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="relative inline-flex items-center justify-center w-10 h-10 rounded-lg border border-transparent bg-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-300 disabled:opacity-50"
+                >
+                  <span className="sr-only">Previous</span>
+                  <svg
+                    className="h-5 w-5"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </button>
+                {[...Array(totalPages).keys()].map((number) => (
+                  <button
+                    key={number + 1}
+                    onClick={() => paginate(number + 1)}
+                    className={`relative inline-flex items-center justify-center w-10 h-10 rounded-lg border border-transparent text-sm font-medium ${currentPage === number + 1
+                      ? 'bg-violet-600 text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      }`}
+                  >
+                    {number + 1}
+                  </button>
+                ))}
+                <button
+                  onClick={() => paginate(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="relative inline-flex items-center justify-center w-10 h-10 rounded-lg border border-transparent bg-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-300 disabled:opacity-50"
+                >
+                  <span className="sr-only">Next</span>
+                  <svg
+                    className="h-5 w-5"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </button>
+              </nav>
+            </div>
+
+          </>
+        )}
 
 
       </div>
-    </div>
+    </div >
   );
 }

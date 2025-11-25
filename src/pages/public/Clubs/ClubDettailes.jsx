@@ -2,6 +2,7 @@ import React, { useEffect, useContext } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchClubById, joinClub } from '../../../app/clubSlice';
+import { fetchPendingClubRequests, fetchUserRegisteredEvents, addClubRequest } from '../../../app/userSlice';
 import Loader from '../../../components/common/UI/Loader';
 import { FaUsers, FaAward, FaCalendarAlt, FaClock, FaMapMarkerAlt } from 'react-icons/fa';
 import { IoMdCheckmarkCircleOutline } from 'react-icons/io';
@@ -62,7 +63,23 @@ export default function ClubDettailes() {
       const result = await dispatch(joinClub(currentClub.id));
       if (joinClub.fulfilled.match(result)) {
         toast.success('Join request sent successfully!');
-        dispatch(fetchClubById(currentClub.id)); 
+        // refresh club details
+        dispatch(fetchClubById(currentClub.id));
+        // Optimistic: immediately add this club to user's pending requests so dashboard shows it
+        const payloadClub = result.payload && Object.keys(result.payload).length ? result.payload : currentClub;
+        // Ensure the payloadClub includes the pivot/user entry if backend returned it; otherwise construct minimal pivot
+        const uid = user?.id || (JSON.parse(localStorage.getItem('user') || 'null') || {}).id;
+        if (uid) {
+          // If backend didn't include the pivot entry for this user, create a minimal one
+          if (!payloadClub.users || !payloadClub.users.some((u) => u.id === uid)) {
+            const fakeUserEntry = { id: uid, pivot: { status: 'pending', created_at: new Date().toISOString() } };
+            payloadClub.users = payloadClub.users ? [...payloadClub.users, fakeUserEntry] : [fakeUserEntry];
+          }
+          dispatch(addClubRequest(payloadClub));
+          // Also trigger full fetch to sync with server state
+          dispatch(fetchPendingClubRequests(uid));
+          dispatch(fetchUserRegisteredEvents(uid));
+        }
       } else if (joinClub.rejected.match(result)) {
         toast.error(result.payload || 'Failed to send join request.');
       }
@@ -116,11 +133,10 @@ export default function ClubDettailes() {
                   {club.categorie || 'General'}
                 </span>
                 <span
-                  className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${
-                    club.status === 'Active'
-                      ? 'bg-green-500 text-white'
-                      : 'bg-yellow-500 text-white'
-                  }`}
+                  className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${club.status === 'Active'
+                    ? 'bg-green-500 text-white'
+                    : 'bg-yellow-500 text-white'
+                    }`}
                 >
                   {club.status || 'Active'}
                 </span>

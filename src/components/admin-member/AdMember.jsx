@@ -4,6 +4,7 @@ import Sidebar from '../common/Layout/Sidebar';
 import AdMemberDashboard from './AdMemberDashboard';
 import ClubManagement from './ClubManagment';
 import EventManagement from './EventManagement';
+import EventRequests from './EventRequests';
 import Profile from '../common/Profile';
 import EventsRegistration from '../student/EventsRegistration';
 import MemberClubs from '../member/MemberClubs';
@@ -27,6 +28,8 @@ export default function AdMember() {
         return <MemberClubs />;
       case 'Event Management':
         return <EventManagement />;
+      case 'Event Requests':
+        return <EventRequests />;
       case 'Profile':
       case 'profile':
         return <Profile activeSection="profile" />;

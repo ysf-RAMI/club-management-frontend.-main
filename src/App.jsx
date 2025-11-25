@@ -28,7 +28,7 @@ export default function App() {
     <Provider store={store}>
       <ToastContainer />
       <Router>
-        <div className="min-h-screen bg-white">
+        <div className="bg-white">
           <Routes>
             <Route element={<PublicLayout />}>
               <Route path="/" element={<Home />} />

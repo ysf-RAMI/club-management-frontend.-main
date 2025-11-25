@@ -119,6 +119,29 @@ export default function Clubs() {
 
       {loading ? (
         <Loader />
+      ) : filteredClubs.length === 0 ? (
+        <div className="bg-gray-100 p-8 min-h-screen flex items-center justify-center">
+          <div className="max-w-xl text-center">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">No clubs available</h2>
+            <p className="text-gray-600 mb-6">
+              There are currently no clubs that match your filters. Try clearing filters or check back later.
+            </p>
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={() => dispatch(clearFilters())}
+                className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+              >
+                Clear Filters
+              </button>
+              <button
+                onClick={() => navigate('/clubs')}
+                className="px-6 py-2 border border-indigo-600 text-indigo-600 rounded-lg hover:bg-indigo-50 transition"
+              >
+                Browse Clubs
+              </button>
+            </div>
+          </div>
+        </div>
       ) : (
         <div className="bg-gray-100 p-4 min-h-screen ">
           <div className="max-w-7xl mx-auto">
@@ -153,35 +176,35 @@ export default function Clubs() {
                           <div className="flex justify-between items-center mb-2">
                             <span
                               className={`text-xs font-semibold px-2 py-1 rounded-full ${(club.categorie || club.category || '').toLowerCase() ===
-                                  'technologie' ||
-                                  (club.categorie || club.category || '').toLowerCase() ===
-                                  'technology'
-                                  ? 'bg-blue-100 text-blue-800'
+                                'technologie' ||
+                                (club.categorie || club.category || '').toLowerCase() ===
+                                'technology'
+                                ? 'bg-blue-100 text-blue-800'
+                                : (club.categorie || club.category || '').toLowerCase() ===
+                                  'academic'
+                                  ? 'bg-green-100 text-green-800'
                                   : (club.categorie || club.category || '').toLowerCase() ===
-                                    'academic'
-                                    ? 'bg-green-100 text-green-800'
+                                    'arts & culture' ||
+                                    (club.categorie || club.category || '').toLowerCase() ===
+                                    'art'
+                                    ? 'bg-purple-100 text-purple-800'
                                     : (club.categorie || club.category || '').toLowerCase() ===
-                                      'arts & culture' ||
-                                      (club.categorie || club.category || '').toLowerCase() ===
-                                      'art'
-                                      ? 'bg-purple-100 text-purple-800'
+                                      'sports'
+                                      ? 'bg-red-100 text-red-800'
                                       : (club.categorie || club.category || '').toLowerCase() ===
-                                        'sports'
-                                        ? 'bg-red-100 text-red-800'
-                                        : (club.categorie || club.category || '').toLowerCase() ===
-                                          'volunteer'
-                                          ? 'bg-yellow-100 text-yellow-800'
-                                          : 'bg-gray-100 text-gray-800'
+                                        'volunteer'
+                                        ? 'bg-yellow-100 text-yellow-800'
+                                        : 'bg-gray-100 text-gray-800'
                                 }`}
                             >
                               {club.categorie || club.category || 'Uncategorized'}
                             </span>
                             <span
                               className={`text-xs font-semibold px-2 py-1 rounded-full ${club.status === 'Active'
-                                  ? 'bg-green-100 text-green-800'
-                                  : club.status === 'Moderate'
-                                    ? 'bg-yellow-100 text-yellow-800'
-                                    : 'bg-gray-100 text-gray-800'
+                                ? 'bg-green-100 text-green-800'
+                                : club.status === 'Moderate'
+                                  ? 'bg-yellow-100 text-yellow-800'
+                                  : 'bg-gray-100 text-gray-800'
                                 }`}
                             >
                               {club.status || 'Unknown'}
@@ -269,8 +292,8 @@ export default function Clubs() {
                     key={number + 1}
                     onClick={() => paginate(number + 1)}
                     className={`relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium ${currentPage === number + 1
-                        ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
-                        : 'text-gray-700 hover:bg-gray-50'
+                      ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
+                      : 'text-gray-700 hover:bg-gray-50'
                       }`}
                   >
                     {number + 1}

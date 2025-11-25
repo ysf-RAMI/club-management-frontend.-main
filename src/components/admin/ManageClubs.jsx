@@ -127,7 +127,7 @@ export default function ManageClubs() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {clubs.map((club) => (
             <div key={club.id} className="bg-white rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 flex flex-col">
-              <img className="w-full h-48 object-cover" src={club.image ? `${API_BASE_URL}/${club.image}` : '/img/Club1.png'} alt={club.name} />
+              <img className="w-full h-48 object-cover" src={club.image ? `${API_BASE_URL}${club.image}` : `/images/default_club_image.jpg`} alt={club.name} />
               <div className="p-6 flex flex-col flex-grow">
                 <h3 className="text-xl font-bold text-gray-900 mb-2">{club.name}</h3>
                 <p className="text-gray-600 text-sm mb-4 flex-grow">{club.description}</p>
